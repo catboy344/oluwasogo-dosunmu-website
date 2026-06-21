@@ -395,4 +395,182 @@ const SpaceView = ({ space, user, onBack }) => {
         </Reveal>
       </div>
 
-      <div className="max-w-3xl mx-auto px-5 md:px-
+      <div className="max-w-3xl mx-auto px-5 md:px-8 py-12 md:py-16 space-y-5">
+        {content.map((item, i) => (
+          <Reveal key={item.id} delay={i * 0.07}>
+            <div className="p-6 md:p-7" style={{ background: C.panel, border: `1px solid ${C.hairline}` }}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-display text-xl md:text-2xl" style={{ color: C.ivory }}>{item.title}</h3>
+                  <p className="font-body text-[12.5px] mt-1.5" style={{ color: C.faint }}>{item.meta}</p>
+                </div>
+                <div className="shrink-0 w-11 h-11 flex items-center justify-center" style={{ border: `1px solid ${C.gold}` }}>
+                  <Play size={14} color={C.gold} fill={C.gold} />
+                </div>
+              </div>
+
+              {space.type === "book" && (
+                <div className="mt-4">
+                  <p className="font-cormorant italic text-[15px]" style={{ color: C.ivoryDim }}>{item.blurb}</p>
+                  <div className="flex flex-wrap items-center gap-3 mt-4">
+                    <button className="px-5 py-2.5 font-body text-[12.5px]" style={{ background: C.gold, color: "#1A1304", fontWeight: 600 }}>
+                      Read PDF · {item.price}
+                    </button>
+                    <button className="px-5 py-2.5 font-body text-[12.5px]" style={{ border: `1px solid ${C.hairline}`, color: C.ivoryDim }}>
+                      Where to buy hardcover
+                    </button>
+                  </div>
+                </div>
+              )}
+              <Engagement contentId={item.id} user={user} />
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ---------------------------------------------------------------
+   HOMEPAGE
+--------------------------------------------------------------- */
+const Homepage = () => (
+  <>
+    <section className="max-w-6xl mx-auto px-5 md:px-8 pt-14 md:pt-20 pb-16">
+      <div className="flex flex-col md:flex-row gap-12 md:gap-0">
+        <Reveal className="md:w-[300px] shrink-0">
+          <PortraitFrame />
+        </Reveal>
+
+        <div className="hidden md:block w-px mx-12" style={{ background: C.hairline }} />
+
+        <Reveal delay={0.12} className="flex-1 md:pt-2">
+          <p className="font-body text-[11px] tracking-[0.35em] uppercase mb-5" style={{ color: C.gold }}>About Me</p>
+          <p className="font-cormorant text-[18px] md:text-[19px] leading-[1.9]" style={{ color: C.ivoryDim }}>
+            My name is Oluwasogo Dosunmu—an author, poet, speaker, and creative visionary
+            passionate about inspiring lives through words, faith, and music.
+            <br /><br />
+            I believe that every creation has the power to leave a lasting impact. Through my
+            books, poetry, motivational messages, gospel teachings, prayer sessions, and
+            instrumental expressions, I seek to inspire hope, ignite purpose, strengthen faith,
+            and encourage personal growth.
+            <br /><br />
+            This platform is more than a collection of my work; it is a reflection of my
+            journey, my convictions, and my commitment to creating meaningful content that
+            uplifts, transforms, and connects people across the world.
+            <br /><br />
+            My mission is simple: to use every gift entrusted to me to inspire hearts, challenge
+            minds, and point people toward purpose, excellence, and God.
+            <br /><br />
+            <span style={{ color: C.ivory }}>
+              Welcome to my world—a place where creativity meets purpose, faith inspires action,
+              and every creation carries a message worth sharing.
+            </span>
+          </p>
+        </Reveal>
+      </div>
+
+      <div className="mt-20 md:mt-28"><NameReveal /></div>
+    </section>
+
+    <section className="max-w-3xl mx-auto px-5 md:px-8 pb-16">
+      <Reveal>
+        <p className="font-body text-[11px] tracking-[0.35em] uppercase mb-6" style={{ color: C.gold }}>Featured</p>
+      </Reveal>
+      <div>
+        {AD_SLOTS.map((label, i) => (
+          <Reveal key={i} delay={i * 0.05}>
+            <div
+              className="flex items-center justify-between py-4 group transition-colors"
+              style={{ borderTop: i === 0 ? `1px solid ${C.hairline}` : "none", borderBottom: `1px solid ${C.hairline}` }}
+            >
+              <div className="flex items-center gap-4">
+                <span className="font-body text-[11px]" style={{ color: C.faint }}>{String(i + 1).padStart(2, "0")}</span>
+                <span className="font-display text-lg md:text-xl group-hover:translate-x-1 transition-transform inline-block" style={{ color: C.ivory }}>
+                  {label}
+                </span>
+              </div>
+              <span className="font-body text-[10.5px] tracking-[0.2em] uppercase" style={{ color: C.faint }}>Coming soon</span>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+
+    <footer className="px-5 md:px-8 py-10" style={{ borderTop: `1px solid ${C.hairlineSoft}` }}>
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
+        <p className="font-body text-[12.5px]" style={{ color: C.faint }}>© {new Date().getFullYear()} Oluwasogo Dosunmu. All rights reserved.</p>
+        <div className="flex items-center gap-5">
+          {[Instagram, Youtube, Facebook, Twitter].map((IconC, i) => (
+            <a key={i} href="#" style={{ color: C.faint }}><IconC size={16} /></a>
+          ))}
+        </div>
+      </div>
+    </footer>
+  </>
+);
+
+/* ---------------------------------------------------------------
+   ROOT
+--------------------------------------------------------------- */
+export default function Site() {
+  const [view, setView] = useState("home");
+  const [user, setUser] = useState(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [pendingSpace, setPendingSpace] = useState(null);
+  const [booted, setBooted] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const stored = await safeGet("user-profile", false);
+      if (stored) setUser(JSON.parse(stored));
+      setBooted(true);
+    })();
+  }, []);
+
+  const handleSelectSpace = useCallback((id) => {
+    if (user) setView(id);
+    else { setPendingSpace(id); setAuthOpen(true); }
+  }, [user]);
+
+  const handleAuth = async (profile) => {
+    setUser(profile);
+    await safeSet("user-profile", JSON.stringify(profile), false);
+    setAuthOpen(false);
+    if (pendingSpace) { setView(pendingSpace); setPendingSpace(null); }
+  };
+
+  const logout = async () => { setUser(null); setView("home"); await safeSet("user-profile", "", false); };
+  const activeSpace = SPACES.find((s) => s.id === view);
+
+  if (!booted) return <div style={{ background: C.bg, minHeight: "100vh" }} />;
+
+  return (
+    <div style={{ background: C.bg, minHeight: "100vh" }}>
+      <FontLoader />
+      <style>{`
+        .font-display { font-family: 'Playfair Display', serif; }
+        .font-body { font-family: 'Outfit', sans-serif; }
+        .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+        ::selection { background: rgba(201,162,75,0.3); }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after { transition-duration: 0.01ms !important; }
+        }
+      `}</style>
+
+      <Nav onSelectSpace={handleSelectSpace} onGoHome={() => setView("home")} />
+
+      {user && view !== "home" && (
+        <div className="max-w-6xl mx-auto px-5 md:px-8 pt-3 flex justify-end">
+          <button onClick={logout} className="flex items-center gap-1.5 font-body text-[11.5px]" style={{ color: C.faint }}>
+            <LogOut size={12} /> Log out
+          </button>
+        </div>
+      )}
+
+      {view === "home" && <Homepage />}
+      {activeSpace && <SpaceView space={activeSpace} user={user} onBack={() => setView("home")} />}
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onAuth={handleAuth} />}
+    </div>
+  );
+}
