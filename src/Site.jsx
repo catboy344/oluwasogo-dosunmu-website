@@ -167,10 +167,13 @@ const AboutMe = () => (
 /* ---------------------------------------------------------------
    MY WORLD NAV — burst animation
 --------------------------------------------------------------- */
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+
 const BurstNav = ({ onSelectSpace = () => {} }) => {
   const [phase, setPhase] = useState("closed");
   const ref = useRef(null);
-
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -186,111 +189,141 @@ const BurstNav = ({ onSelectSpace = () => {} }) => {
         setPhase("closed");
       }
     };
-
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
   const handleToggle = () => {
-    setPhase((p) => (p === "closed" ? "burst" : "closed"));
-    setTimeout(() => {
-      setPhase((p) => (p === "burst" ? "list" : p));
-    }, 900);
+    if (phase === "closed") {
+      setPhase("burst");
+      setTimeout(() => setPhase("list"), 900);
+    } else {
+      setPhase("closed");
+    }
   };
 
-  const SPACES_SAFE = [
-    { id: "home", title: "Home", tag: "Start", emoji: "🏠", accent: "#ffffff" },
-    { id: "work", title: "Work", tag: "Projects", emoji: "💼", accent: "#ffffff" },
-    { id: "life", title: "Life", tag: "Personal", emoji: "🌿", accent: "#ffffff" },
+  // SAFE DATA (no icons = no crashes)
+  const SPACES = [
+    { id: "home", title: "Home", tag: "Start", emoji: "🏠", accent: "#7c3aed" },
+    { id: "work", title: "Work", tag: "Projects", emoji: "💼", accent: "#06b6d4" },
+    { id: "life", title: "Life", tag: "Personal", emoji: "🌿", accent: "#22c55e" },
+    { id: "ideas", title: "Ideas", tag: "Creative", emoji: "💡", accent: "#f59e0b" },
   ];
 
   const burstPositions = (i) => {
     const mobile = [
-      { x: -50, y: 120 },
-      { x: -80, y: 180 },
-      { x: -110, y: 240 },
+      { x: -60, y: 120 },
+      { x: -90, y: 200 },
+      { x: -120, y: 280 },
+      { x: -150, y: 340 },
     ];
 
     const desktop = [
-      { x: -200, y: 120 },
-      { x: -120, y: 200 },
-      { x: 0, y: 260 },
+      { x: -240, y: 120 },
+      { x: -160, y: 180 },
+      { x: -80, y: 240 },
+      { x: 0, y: 300 },
     ];
 
     return isMobile ? mobile[i] : desktop[i];
   };
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div className="relative" ref={ref}>
       <button
         onClick={handleToggle}
+        className="flex items-center gap-2 px-5 py-2 rounded-full text-white"
         style={{
-          padding: "10px 16px",
-          borderRadius: 999,
-          background: "black",
-          color: "white",
-          border: "1px solid #333",
+          background: phase !== "closed"
+            ? "rgba(255,255,255,0.12)"
+            : "rgba(255,255,255,0.07)",
+          border: "1px solid rgba(255,255,255,0.12)"
         }}
       >
         My World
+
+        <motion.span
+          animate={{ rotate: phase !== "closed" ? 180 : 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <ChevronDown size={14} />
+        </motion.span>
       </button>
 
-      {/* BURST (NO FRAMER MOTION = NO CRASH) */}
-      {phase === "burst" &&
-        SPACES_SAFE.map((s, i) => {
-          const pos = burstPositions(i);
+      <AnimatePresence>
+        {(phase === "burst" || phase === "list") && (
+          <>
+            {/* BURST */}
+            {phase === "burst" &&
+              SPACES.map((s, i) => {
+                const pos = burstPositions(i);
+                if (!pos) return null;
 
-          return (
-            <div
-              key={s.id}
-              style={{
-                position: "absolute",
-                top: 50,
-                right: 0,
-                transform: `translate(${pos.x}px, ${pos.y}px)`,
-                background: "#111",
-                color: "white",
-                padding: "8px 12px",
-                borderRadius: 12,
-                border: "1px solid #333",
-              }}
-            >
-              {s.emoji} {s.title}
-            </div>
-          );
-        })}
+                return (
+                  <motion.div
+                    key={s.id}
+                    initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
+                    animate={{
+                      x: pos.x,
+                      y: pos.y,
+                      opacity: 1,
+                      scale: 1,
+                    }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 120,
+                      damping: 14,
+                      delay: i * 0.05,
+                    }}
+                    className="absolute top-12 right-0 px-3 py-2 rounded-xl text-white"
+                    style={{
+                      background: `${s.accent}22`,
+                      border: `1px solid ${s.accent}55`,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <span className="text-sm">
+                      {s.emoji} {s.title}
+                    </span>
+                  </motion.div>
+                );
+              })}
 
-      {/* LIST */}
-      {phase === "list" && (
-        <div
-          style={{
-            position: "absolute",
-            top: 50,
-            right: 0,
-            background: "#111",
-            border: "1px solid #333",
-            borderRadius: 12,
-            padding: 10,
-          }}
-        >
-          {SPACES_SAFE.map((s) => (
-            <div
-              key={s.id}
-              onClick={() => {
-                setPhase("closed");
-                onSelectSpace(s.id);
-              }}
-              style={{
-                padding: 10,
-                color: "white",
-                cursor: "pointer",
-              }}
-            >
-              {s.emoji} {s.title}
-            </div>
-          ))}
-        </div>
-      )}
+            {/* LIST */}
+            {phase === "list" && (
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="absolute right-0 mt-3 w-[260px] rounded-xl overflow-hidden"
+                style={{
+                  background: "rgba(15,15,15,0.95)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              >
+                {SPACES.map((s) => (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      setPhase("closed");
+                      onSelectSpace(s.id);
+                    }}
+                    className="px-4 py-3 text-white hover:bg-white/10 cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{s.emoji}</span>
+                    <div>
+                      <div>{s.title}</div>
+                      <div className="text-xs opacity-50">{s.tag}</div>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
