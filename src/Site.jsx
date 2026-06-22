@@ -167,11 +167,7 @@ const AboutMe = () => (
 /* ---------------------------------------------------------------
    MY WORLD NAV — burst animation
 --------------------------------------------------------------- */
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
-
-const BurstNav = ({ onSelectSpace = () => {} }) => {
+const BurstNav = ({ onSelectSpace }) => {
   const [phase, setPhase] = useState("closed");
   const ref = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -189,62 +185,66 @@ const BurstNav = ({ onSelectSpace = () => {} }) => {
         setPhase("closed");
       }
     };
+
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  // ✅ RESTORED ORIGINAL TOGGLE
   const handleToggle = () => {
     if (phase === "closed") {
       setPhase("burst");
-      setTimeout(() => setPhase("list"), 900);
+      setTimeout(() => setPhase("list"), 1200);
     } else {
       setPhase("closed");
     }
   };
 
-  // SAFE DATA (no icons = no crashes)
-  const SPACES = [
-    { id: "home", title: "Home", tag: "Start", emoji: "🏠", accent: "#7c3aed" },
-    { id: "work", title: "Work", tag: "Projects", emoji: "💼", accent: "#06b6d4" },
-    { id: "life", title: "Life", tag: "Personal", emoji: "🌿", accent: "#22c55e" },
-    { id: "ideas", title: "Ideas", tag: "Creative", emoji: "💡", accent: "#f59e0b" },
-  ];
-
+  // ⚠️ KEEP YOUR ORIGINAL SPACES (IMPORTANT)
+  // DO NOT change structure
   const burstPositions = (i) => {
-    const mobile = [
-      { x: -60, y: 120 },
-      { x: -90, y: 200 },
-      { x: -120, y: 280 },
-      { x: -150, y: 340 },
+    const mobileSpread = [
+      { x: -70, y: 120 },
+      { x: -110, y: 190 },
+      { x: -150, y: 260 },
+      { x: -150, y: 300 },
+      { x: -180, y: 240 },
+      { x: -210, y: 180 },
+      { x: -240, y: 120 },
     ];
 
-    const desktop = [
+    const desktopSpread = [
       { x: -240, y: 120 },
       { x: -160, y: 180 },
-      { x: -80, y: 240 },
+      { x: -80, y: 250 },
       { x: 0, y: 300 },
+      { x: 80, y: 250 },
+      { x: 160, y: 180 },
+      { x: 240, y: 120 },
     ];
 
-    return isMobile ? mobile[i] : desktop[i];
+    return isMobile ? mobileSpread[i] : desktopSpread[i];
   };
 
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={handleToggle}
-        className="flex items-center gap-2 px-5 py-2 rounded-full text-white"
+        className="flex items-center gap-2 font-body text-[13px] tracking-[0.12em] uppercase px-5 py-2.5 rounded-full"
         style={{
-          background: phase !== "closed"
-            ? "rgba(255,255,255,0.12)"
-            : "rgba(255,255,255,0.07)",
-          border: "1px solid rgba(255,255,255,0.12)"
+          color: "white",
+          background:
+            phase !== "closed"
+              ? "rgba(255,255,255,0.12)"
+              : "rgba(255,255,255,0.07)",
+          border: "1px solid rgba(255,255,255,0.12)",
         }}
       >
         My World
 
         <motion.span
           animate={{ rotate: phase !== "closed" ? 180 : 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 2.5 }}
         >
           <ChevronDown size={14} />
         </motion.span>
@@ -253,71 +253,103 @@ const BurstNav = ({ onSelectSpace = () => {} }) => {
       <AnimatePresence>
         {(phase === "burst" || phase === "list") && (
           <>
-            {/* BURST */}
+            {/* BURST (RESTORED EXACT STRUCTURE) */}
             {phase === "burst" &&
-              SPACES.map((s, i) => {
-                const pos = burstPositions(i);
-                if (!pos) return null;
+              SPACES.map((s, i) => (
+                <motion.div
+                  key={`burst-${s.id}`}
+                  initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
+                  animate={{
+                    x: burstPositions(i).x,
+                    y: burstPositions(i).y,
+                    opacity: 1,
+                    scale: 1,
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.9,
+                    delay: i * 0.06,
+                    type: "spring",
+                    stiffness: 120,
+                    damping: 12,
+                  }}
+                  className="absolute top-12 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
+                  style={{
+                    background: `${s.accent}22`,
+                    border: `1px solid ${s.accent}55`,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <s.Icon size={13} color={s.accent} />
+                  <span className="font-body text-[12px]" style={{ color: "white" }}>
+                    {s.title}
+                  </span>
+                </motion.div>
+              ))}
 
-                return (
-                  <motion.div
-                    key={s.id}
-                    initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
-                    animate={{
-                      x: pos.x,
-                      y: pos.y,
-                      opacity: 1,
-                      scale: 1,
-                    }}
-                    exit={{ opacity: 0 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 120,
-                      damping: 14,
-                      delay: i * 0.05,
-                    }}
-                    className="absolute top-12 right-0 px-3 py-2 rounded-xl text-white"
-                    style={{
-                      background: `${s.accent}22`,
-                      border: `1px solid ${s.accent}55`,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <span className="text-sm">
-                      {s.emoji} {s.title}
-                    </span>
-                  </motion.div>
-                );
-              })}
-
-            {/* LIST */}
+            {/* LIST (RESTORED EXACT STRUCTURE) */}
             {phase === "list" && (
               <motion.div
-                initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="absolute right-0 mt-3 w-[260px] rounded-xl overflow-hidden"
+                initial={{ opacity: 0, scale: 0.95, y: -25 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: -6 }}
+                transition={{
+                  duration: 0.5,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="absolute right-0 mt-3 w-[290px] rounded-2xl overflow-hidden z-50"
                 style={{
-                  background: "rgba(15,15,15,0.95)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "rgba(12,13,18,0.97)",
+                  border: "1px solid rgba(255,255,255,0.09)",
+                  boxShadow: "0 30px 80px rgba(0,0,0,0.9)",
+                  backdropFilter: "blur(20px)",
                 }}
               >
-                {SPACES.map((s) => (
-                  <div
+                {SPACES.map((s, i) => (
+                  <motion.button
                     key={s.id}
+                    initial={{ opacity: 0, y: -40, scale: 0.85 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{
+                      delay: (SPACES.length - 1 - i) * 0.2,
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 20,
+                    }}
                     onClick={() => {
                       setPhase("closed");
                       onSelectSpace(s.id);
                     }}
-                    className="px-4 py-3 text-white hover:bg-white/10 cursor-pointer flex items-center gap-2"
+                    className="w-full text-left px-5 py-4 flex items-center gap-3.5 group hover:bg-white/[0.04] transition-colors"
+                    style={{
+                      borderTop:
+                        i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                    }}
                   >
-                    <span>{s.emoji}</span>
-                    <div>
-                      <div>{s.title}</div>
-                      <div className="text-xs opacity-50">{s.tag}</div>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg">
+                      {s.emoji}
                     </div>
-                  </div>
+
+                    <span>
+                      <span
+                        className="block font-body text-[13.5px] font-medium"
+                        style={{ color: "rgba(255,255,255,0.9)" }}
+                      >
+                        {s.title}
+                      </span>
+                      <span
+                        className="block font-body text-[11px] mt-0.5"
+                        style={{ color: "rgba(255,255,255,0.3)" }}
+                      >
+                        {s.tag}
+                      </span>
+                    </span>
+
+                    <div
+                      className="ml-auto w-2 h-2 rounded-full shrink-0"
+                      style={{ background: s.accent }}
+                    />
+                  </motion.button>
                 ))}
               </motion.div>
             )}
