@@ -227,8 +227,8 @@ const BurstNav = ({ onSelectSpace }) => {
                 animate={{ x: burstPositions[i].x, y: burstPositions[i].y, opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
              transition={{
-  duration: 4,
-  delay: i * 2,
+  duration: 1,
+  delay: i * 0.5,
   type: "spring",
   stiffness: 120,
   damping: 12
