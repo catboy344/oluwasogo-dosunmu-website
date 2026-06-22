@@ -184,17 +184,24 @@ const BurstNav = ({ onSelectSpace }) => {
   const handleToggle = () => {
     if (phase === "closed") {
       setPhase("burst");
-      setTimeout(() => setPhase("list"), 700);
+    setTimeout(() => {
+  setPhase("list");
+}, 1200);
     } else {
       setPhase("closed");
     }
   };
 
   // positions where items scatter to (relative to button)
-  const burstPositions = [
-    { x: -220, y: -90 }, { x: 100, y: -110 }, { x: 200, y: -40 },
-    { x: 180, y: 70 }, { x: -30, y: 120 }, { x: -200, y: 70 }, { x: -180, y: -30 },
-  ];
+   const burstPositions = [
+  { x: -240, y: 120 }, // far left
+  { x: -160, y: 180 }, // left outer
+  { x: -80,  y: 250 }, // left inner
+  { x: 0,    y: 300 }, // center bottom
+  { x: 80,   y: 250 }, // right inner
+  { x: 160,  y: 180 }, // right outer
+  { x: 240,  y: 120 }, // far right
+];
 
   return (
     <div className="relative" ref={ref}>
@@ -204,7 +211,7 @@ const BurstNav = ({ onSelectSpace }) => {
         style={{ color: "white", background: phase !== "closed" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}
       >
         My World
-        <motion.span animate={{ rotate: phase !== "closed" ? 180 : 0 }} transition={{ duration: 0.3 }}>
+        <motion.span animate={{ rotate: phase !== "closed" ? 180 : 0 }} transition={{ duration: 2.5 }}>
           <ChevronDown size={14} />
         </motion.span>
       </button>
@@ -219,8 +226,14 @@ const BurstNav = ({ onSelectSpace }) => {
                 initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
                 animate={{ x: burstPositions[i].x, y: burstPositions[i].y, opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute top-0 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
+             transition={{
+  duration: 0.9,
+  delay: i * 0.04,
+  type: "spring",
+  stiffness: 120,
+  damping: 12
+}}
+              className="absolute top-12 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
                 style={{ background: `${s.accent}22`, border: `1px solid ${s.accent}55`, whiteSpace: "nowrap" }}
               >
                 <s.Icon size={13} color={s.accent} />
@@ -231,19 +244,43 @@ const BurstNav = ({ onSelectSpace }) => {
             {/* LIST PHASE — settle into dropdown */}
             {phase === "list" && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: -6 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+              initial={{
+  opacity: 0,
+  scale: 0.95,
+  y: -25
+}}
+animate={{
+  opacity: 1,
+  scale: 1,
+  y: 0
+}}
                 exit={{ opacity: 0, scale: 0.92, y: -6 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{
+  duration: 0.5,
+  ease: [0.16, 1, 0.3, 1]
+}}
                 className="absolute right-0 mt-3 w-[290px] rounded-2xl overflow-hidden z-50"
                 style={{ background: "rgba(12,13,18,0.97)", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 30px 80px rgba(0,0,0,0.9)", backdropFilter: "blur(20px)" }}
               >
-                {SPACES.map((s, i) => (
-                  <motion.button
-                    key={s.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+               {SPACES.map((s, i) => (
+  <motion.button
+    key={s.id}
+    initial={{
+      opacity: 0,
+      y: -40,
+      scale: 0.85
+    }}
+    animate={{
+      opacity: 1,
+      y: 0,
+      scale: 1
+    }}
+    transition={{
+   delay: (SPACES.length - 1 - i) * 0.2,
+      type: "spring",
+     stiffness: 300,
+damping: 20
+    }}
                     onClick={() => { setPhase("closed"); onSelectSpace(s.id); }}
                     className="w-full text-left px-5 py-4 flex items-center gap-3.5 group hover:bg-white/[0.04] transition-colors"
                     style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)" }}
@@ -332,12 +369,12 @@ const AuthModal = ({ onClose, onAuth }) => {
   const dodgeMsgs = ["Hmm, not yet... 😏", "Almost! Try again 😅", "Okay okay, you got me 😂"];
 
   return (
-    <motion.div className="fixed inset-0 z-50 flex items-center justify-center px-5" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <motion.div className="fixed inset-0 z-50 flex items-center justify-center px-5" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
+        animate={{ opacity: 3, y: 0, scale: 3 }}
         exit={{ opacity: 0, y: 20 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 2.5, ease: [1.50, 2, 1, 2] }}
         className="w-full max-w-sm rounded-3xl p-8 relative"
         style={{ background: "#0E1015", border: "1px solid rgba(255,255,255,0.09)" }}
       >
