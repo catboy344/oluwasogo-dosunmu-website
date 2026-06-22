@@ -171,25 +171,31 @@ const BurstNav = ({ onSelectSpace }) => {
   const [phase, setPhase] = useState("closed");
   const ref = useRef(null);
 
-  // 👇 put it here
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 900);
+    const check = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 900);
+      }
+    };
+
     check();
     window.addEventListener("resize", check);
+
     return () => window.removeEventListener("resize", check);
   }, []);
 
   useEffect(() => {
     const onClick = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
-        if (phase !== "closed") setPhase("closed");
+        setPhase("closed");
       }
     };
+
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
-  }, [phase]);
+  }, []);
 
   // positions where items scatter to (relative to button)
 const burstPositions = (i) => {
