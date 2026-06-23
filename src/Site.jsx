@@ -77,12 +77,22 @@ const Gallery = () => {
   const [dir, setDir] = useState(1);
   const [glowIdx, setGlowIdx] = useState(0);
 
-  useEffect(() => {
-    const stored = lsGet("cloudinary_photos");
-    if (stored) {
-      try { setPhotos(JSON.parse(stored)); } catch {}
-    }
-  }, []);
+useEffect(() => {
+  fetch(
+    `https://res.cloudinary.com/mm0gviif/image/list/gallery.json`
+  )
+    .then(res => res.json())
+    .then(data => {
+      if (data.resources) {
+        const imgs = data.resources.map(r => ({
+          src: `https://res.cloudinary.com/mm0gviif/image/upload/${r.public_id}`,
+          name: r.public_id,
+        }));
+        setCloudPhotos(imgs);
+      }
+    })
+    .catch(() => {});
+}, []);
 
   const slides = photos.length > 0 ? photos : SLIDES;
   const total = slides.length;
