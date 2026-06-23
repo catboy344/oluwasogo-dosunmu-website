@@ -294,21 +294,24 @@ const handleFiles = async (e) => {
   setUploading(true);
   for (let i = 0; i < files.length; i++) {
     try {
-      const { url, publicId } = await uploadToCloudinary(files[i], "gallery");
+      const file = files[i];
+      // Check if it's a video
+      const isVideo = file.type.startsWith('video/');
       
-      // Insert into Supabase
+      const { url, publicId } = await uploadToCloudinary(file, isVideo ? "videos" : "gallery");
+      
       const { data, error } = await sb
         .from("photos")
         .insert({
           url: url,
           public_id: publicId,
-          name: files[i].name,
+          name: file.name,
+          type: isVideo ? 'video' : 'photo',  // ← This saves the type!
         })
-        .select(); // ← This returns the inserted data
+        .select();
       
       if (error) {
         console.error("Supabase error:", error);
-        alert("Upload failed: " + error.message);
         continue;
       }
       
@@ -317,43 +320,6 @@ const handleFiles = async (e) => {
       }
     } catch (err) {
       console.error("Upload failed:", err);
-      alert("Upload failed: " + err.message);
-    }
-  }
-  setUploading(false);
-  e.target.value = "";
-};
-
-const handleFiles = async (e) => {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
-  setUploading(true);
-  for (let i = 0; i < files.length; i++) {
-    try {
-      const { url, publicId } = await uploadToCloudinary(files[i], "gallery");
-      
-      // Insert into Supabase
-      const { data, error } = await sb
-        .from("photos")
-        .insert({
-          url: url,
-          public_id: publicId,
-          name: files[i].name,
-        })
-        .select(); // ← This returns the inserted data
-      
-      if (error) {
-        console.error("Supabase error:", error);
-        alert("Upload failed: " + error.message);
-        continue;
-      }
-      
-      if (data && data.length > 0) {
-        setPhotos(prev => [...prev, data[0]]);
-      }
-    } catch (err) {
-      console.error("Upload failed:", err);
-      alert("Upload failed: " + err.message);
     }
   }
   setUploading(false);
@@ -385,7 +351,7 @@ const handleFiles = async (e) => {
           </p>
           <p className="font-body text-[12px] mt-1" style={{ color: C.faint }}>JPG, PNG, WEBP — multiple at once</p>
         </div>
-        <input type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} disabled={uploading} />
+       <input type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} disabled={uploading} />
       </label>
 
       {photos.length === 0 ? (
