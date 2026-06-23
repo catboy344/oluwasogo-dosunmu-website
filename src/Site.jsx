@@ -78,7 +78,7 @@ const Gallery = () => {
   const [glowIdx, setGlowIdx] = useState(0);
 
   useEffect(() => {
-    const stored = lsGet("admin_photos");
+    const stored = lsGet("cloudinary_photos");
     if (stored) {
       try { setPhotos(JSON.parse(stored)); } catch {}
     }
