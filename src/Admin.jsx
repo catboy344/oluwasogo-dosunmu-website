@@ -49,7 +49,22 @@ const C = {
 const ACCENT_COLORS = [C.violet, C.blue, C.emerald, C.bad, C.gold, C.amber, C.teal];
 
 const ADMIN_PASSWORD = "John+2558";
+const CLOUDINARY_CLOUD = "mm0gviif";
+const CLOUDINARY_PRESET = "oliuwasogo Uploads";
 
+async function uploadToCloudinary(file, folder = "gallery") {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_PRESET);
+  formData.append("folder", folder);
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`,
+    { method: "POST", body: formData }
+  );
+  if (!res.ok) throw new Error("Upload failed");
+  const data = await res.json();
+  return { url: data.secure_url, publicId: data.public_id };
+}
 const SPACES = [
   { id: "whispers", title: "Whispers with Oluwasogo", Icon: Mic, type: "audio", accent: C.teal },
   { id: "speaks", title: "Sogo Speaks", Icon: Video, type: "video", accent: C.gold },
@@ -267,34 +282,44 @@ const Overview = ({ allContent, engagement }) => {
 --------------------------------------------------------------- */
 const Photos = () => {
   const [photos, setPhotos] = useState([]);
-  const [previews, setPreviews] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const stored = lsGet("admin_photos");
-    if (stored) setPhotos(JSON.parse(stored));
+ const stored = lsGet("cloudinary_photos");
+if (stored) setPhotos(JSON.parse(stored));
   }, []);
 
-  const handleFiles = (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const newPhoto = { id: `photo-${Date.now()}-${Math.random()}`, name: file.name, src: ev.target.result, addedAt: new Date().toLocaleDateString() };
-        setPhotos(prev => {
-          const updated = [...prev, newPhoto];
-          lsSet("admin_photos", JSON.stringify(updated));
-          return updated;
-        });
-      };
-      reader.readAsDataURL(file);
-    });
-    e.target.value = "";
-  };
+const handleFiles = async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  setUploading(true);
+  const results = [];
+  for (let i = 0; i < files.length; i++) {
+    try {
+      const { url, publicId } = await uploadToCloudinary(files[i], "gallery");
+      results.push({
+        id: publicId,
+        src: url,
+        name: files[i].name,
+        addedAt: new Date().toLocaleDateString()
+      });
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+  }
+  setPhotos(prev => {
+    const updated = [...prev, ...results];
+    lsSet("cloudinary_photos", JSON.stringify(updated));
+    return updated;
+  });
+  setUploading(false);
+  e.target.value = "";
+};
 
   const deletePhoto = (id) => {
     setPhotos(prev => {
       const updated = prev.filter(p => p.id !== id);
-      lsSet("admin_photos", JSON.stringify(updated));
+      lsSet("cloudinary_photos", JSON.stringify(updated));
       return updated;
     });
   };
@@ -305,7 +330,6 @@ const Photos = () => {
       <p className="font-body text-[13px] mb-7" style={{ color: C.faint }}>
         Upload your photos here — they'll appear in the swiping gallery on your homepage.
         <br />
-        <span style={{ color: C.warn }}>Note: photos save in your browser for now. Connect Cloudinary at deploy for permanent storage.</span>
       </p>
 
       {/* Upload zone */}
