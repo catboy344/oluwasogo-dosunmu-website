@@ -117,13 +117,13 @@ const Gallery = () => {
 /* ---------------------------------------------------------------
    ABOUT ME — structured, designed, not just text
 --------------------------------------------------------------- */
-const AboutMe = () => (
+const BehindtheWords = () => (
   <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }} className="flex-1 flex flex-col justify-center py-4 min-w-0">
 
     {/* top label */}
     <div className="flex items-center gap-3 mb-6">
       <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.15), transparent)" }} />
-      <p className="font-body text-[10px] tracking-[0.4em] uppercase shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>Behind the Words</p>
+      <p className="font-body text-[10px] tracking-[0.4em] uppercase shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}> Behind the Words </p>
       <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15))" }} />
     </div>
 
@@ -149,7 +149,7 @@ const AboutMe = () => (
 
     {/* body */}
     <p className="font-body text-[13.5px] leading-[1.85]" style={{ color: "rgba(255,255,255,0.5)", maxWidth: 480 }}>
-      I am an author, poet, speaker, and creative visionary passionate about inspiring lives through words, faith, and music. Through books, poetry, sermons, prayer sessions, and motivational messages, I seek to inspire hope, ignite purpose, and point people toward God.
+     I am an author, poet, speaker, and creative visionary passionate about inspiring lives through words, faith, and music. Through books, poetry, sermons, prayer sessions, and motivational messages, I seek to inspire hope, ignite purpose, and point people toward God.
     </p>
 
     {/* stats row */}
