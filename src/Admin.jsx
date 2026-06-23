@@ -102,27 +102,97 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 const AdminLogin = ({ onSuccess }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const [show, setShow] = useState(false);
 
   const submit = (e) => {
     e.preventDefault();
-
-    const enteredPassword = password.trim();
-
-    if (enteredPassword === ADMIN_PASSWORD) {
+    if (password.trim() === ADMIN_PASSWORD) {
       onSuccess();
       return;
     }
-
     setError(true);
-
-    setTimeout(() => {
-      setError(false);
-    }, 1800);
+    setTimeout(() => setError(false), 1800);
   };
 
-  // return (...)
-};
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: C.bg }}>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-sm"
+      >
+        {/* Logo / header */}
+        <div className="mb-10 text-center">
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-5"
+            style={{ background: `${C.violet}22`, border: `1px solid ${C.violet}33` }}
+          >
+            <Lock size={20} color={C.violet} />
+          </div>
+          <h1 className="font-fraunces font-bold text-2xl mb-1" style={{ color: C.white }}>
+            Admin Login
+          </h1>
+          <p className="font-body text-[13px]" style={{ color: C.faint }}>
+            Enter your password to continue
+          </p>
+        </div>
 
+        {/* Form */}
+        <form onSubmit={submit} className="space-y-4">
+          <div className="relative">
+            <input
+              type={show ? "text" : "password"}
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError(false); }}
+              placeholder="Password"
+              autoFocus
+              className="w-full bg-transparent outline-none font-body text-[14px] px-4 py-3.5 rounded-2xl pr-11"
+              style={{
+                border: `1px solid ${error ? C.bad : C.border}`,
+                color: C.white,
+                background: C.surface,
+                transition: "border-color 0.2s",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShow(s => !s)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2"
+              style={{ color: C.faint, background: "none", border: "none", cursor: "pointer" }}
+            >
+              <Eye size={15} />
+            </button>
+          </div>
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-body text-[12.5px]"
+              style={{ color: C.bad }}
+            >
+              Incorrect password. Try again.
+            </motion.p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full py-3.5 rounded-2xl font-body text-[14px] font-semibold"
+            style={{
+              background: `linear-gradient(135deg, ${C.violet}, ${C.blue})`,
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Sign in
+          </button>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
 /* ---------------------------------------------------------------
    STAT CARD
 --------------------------------------------------------------- */
