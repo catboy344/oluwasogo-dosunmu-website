@@ -92,7 +92,7 @@ const Gallery = () => {
   const c2 = GLOW_COLORS[(glowIdx + 2) % GLOW_COLORS.length];
   const c3 = GLOW_COLORS[(glowIdx + 4) % GLOW_COLORS.length];
   return (
-    <div className="relative w-full md:w-[360px] shrink-0" style={{ aspectRatio: "3/4", maxHeight: 500 }}>
+   <div className="relative w-full md:w-[360px] shrink-0" style={{ height: 500 }}>
       {/* colour-cycling outer glow — big soft bloom */}
       <motion.div
         className="absolute rounded-3xl pointer-events-none"
@@ -184,7 +184,7 @@ const AboutMe = () => (
 
     {/* body */}
     <p className="font-body text-[13.5px] leading-[1.85]" style={{ color: "rgba(255,255,255,0.5)", maxWidth: 480 }}>
-      An author, poet, speaker, and creative visionary passionate about inspiring lives through words, faith, and music. Through books, poetry, sermons, prayer sessions, and motivational messages, I seek to inspire hope, ignite purpose, and point people toward God.
+      I am an author, poet, speaker, and creative visionary passionate about inspiring lives through words, faith, and music. Through books, poetry, sermons, prayer sessions, and motivational messages, I seek to inspire hope, ignite purpose, and point people toward God.
     </p>
 
     {/* stats row */}
@@ -219,17 +219,24 @@ const BurstNav = ({ onSelectSpace }) => {
   const handleToggle = () => {
     if (phase === "closed") {
       setPhase("burst");
-      setTimeout(() => setPhase("list"), 700);
+    setTimeout(() => {
+  setPhase("list");
+}, 1200);
     } else {
       setPhase("closed");
     }
   };
 
   // positions where items scatter to (relative to button)
-  const burstPositions = [
-    { x: -220, y: -90 }, { x: 100, y: -110 }, { x: 200, y: -40 },
-    { x: 180, y: 70 }, { x: -30, y: 120 }, { x: -200, y: 70 }, { x: -180, y: -30 },
-  ];
+   const burstPositions = [
+  { x: -240, y: 120 }, // far left
+  { x: -160, y: 180 }, // left outer
+  { x: -80,  y: 250 }, // left inner
+  { x: 0,    y: 300 }, // center bottom
+  { x: 80,   y: 250 }, // right inner
+  { x: 160,  y: 180 }, // right outer
+  { x: 240,  y: 120 }, // far right
+];
 
   return (
     <div className="relative" ref={ref}>
@@ -239,7 +246,7 @@ const BurstNav = ({ onSelectSpace }) => {
         style={{ color: "white", background: phase !== "closed" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}
       >
         My World
-        <motion.span animate={{ rotate: phase !== "closed" ? 180 : 0 }} transition={{ duration: 0.3 }}>
+        <motion.span animate={{ rotate: phase !== "closed" ? 180 : 0 }} transition={{ duration: 2.5 }}>
           <ChevronDown size={14} />
         </motion.span>
       </button>
@@ -254,8 +261,14 @@ const BurstNav = ({ onSelectSpace }) => {
                 initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
                 animate={{ x: burstPositions[i].x, y: burstPositions[i].y, opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute top-0 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
+             transition={{
+  duration: 0.9,
+  delay: i * 0.04,
+  type: "spring",
+  stiffness: 120,
+  damping: 12
+}}
+              className="absolute top-12 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
                 style={{ background: `${s.accent}22`, border: `1px solid ${s.accent}55`, whiteSpace: "nowrap" }}
               >
                 <s.Icon size={13} color={s.accent} />
@@ -266,19 +279,43 @@ const BurstNav = ({ onSelectSpace }) => {
             {/* LIST PHASE — settle into dropdown */}
             {phase === "list" && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: -6 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+              initial={{
+  opacity: 0,
+  scale: 0.95,
+  y: -25
+}}
+animate={{
+  opacity: 1,
+  scale: 1,
+  y: 0
+}}
                 exit={{ opacity: 0, scale: 0.92, y: -6 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{
+  duration: 0.5,
+  ease: [0.16, 1, 0.3, 1]
+}}
                 className="absolute right-0 mt-3 w-[290px] rounded-2xl overflow-hidden z-50"
                 style={{ background: "rgba(12,13,18,0.97)", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 30px 80px rgba(0,0,0,0.9)", backdropFilter: "blur(20px)" }}
               >
-                {SPACES.map((s, i) => (
-                  <motion.button
-                    key={s.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+               {SPACES.map((s, i) => (
+  <motion.button
+    key={s.id}
+    initial={{
+      opacity: 0,
+      y: -40,
+      scale: 0.85
+    }}
+    animate={{
+      opacity: 1,
+      y: 0,
+      scale: 1
+    }}
+    transition={{
+   delay: (SPACES.length - 1 - i) * 0.2,
+      type: "spring",
+      stiffness: 300,
+      damping: 20
+    }}
                     onClick={() => { setPhase("closed"); onSelectSpace(s.id); }}
                     className="w-full text-left px-5 py-4 flex items-center gap-3.5 group hover:bg-white/[0.04] transition-colors"
                     style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)" }}
@@ -300,31 +337,9 @@ const BurstNav = ({ onSelectSpace }) => {
       </AnimatePresence>
     </div>
   );
-};
+};  
 
-/* ---------------------------------------------------------------
-   NAV
---------------------------------------------------------------- */
-const Nav = ({ onSelectSpace, onGoHome }) => {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    document.addEventListener("scroll", onScroll);
-    return () => document.removeEventListener("scroll", onScroll);
-  }, []);
-  return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}
-      className="fixed top-0 left-0 right-0 z-40"
-      style={{ background: scrolled ? "rgba(7,8,12,0.9)" : "transparent", backdropFilter: scrolled ? "blur(16px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.07)" : "none", transition: "all 0.4s" }}
-    >
-      <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between">
-        <button onClick={onGoHome} className="font-fraunces font-bold text-[18px]" style={{ color: "white" }}>Oluwasogo Dosunmu</button>
-        <BurstNav onSelectSpace={onSelectSpace} />
-      </div>
-    </motion.header>
-  );
-};
+
 
 /* ---------------------------------------------------------------
    DODGING AUTH MODAL — button runs away twice, third time it stays
