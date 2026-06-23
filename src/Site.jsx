@@ -65,42 +65,57 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 /* ---------------------------------------------------------------
    AUTO-SWIPING GALLERY
 --------------------------------------------------------------- */
-const GLOW_COLORS = [
-  "#7C3AED", "#2563EB", "#059669", "#DC2626",
-  "#E8B23D", "#E85D9E", "#38BDB0",
-];
-
 const Gallery = () => {
+  const [photos, setPhotos] = useState([]);
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState(1);
   const [glowIdx, setGlowIdx] = useState(0);
-  const goTo = (next) => { setDir(next > idx ? 1 : -1); setIdx(next); };
+
+  // Load photos from admin localStorage
   useEffect(() => {
-    const t = setInterval(() => { setDir(1); setIdx(i => (i + 1) % SLIDES.length); }, 4000);
-    return () => clearInterval(t);
+    const stored = lsGet("admin_photos");
+    if (stored) {
+      try { setPhotos(JSON.parse(stored)); } catch {}
+    }
   }, []);
+
+  const slides = photos.length > 0 ? photos : SLIDES; // fallback to gradients if no photos yet
+  const total = slides.length;
+
+  const goTo = (next) => { setDir(next > idx ? 1 : -1); setIdx(next); };
+
+  useEffect(() => {
+    setIdx(0); // reset when photos load
+  }, [photos.length]);
+
+  useEffect(() => {
+    const t = setInterval(() => { setDir(1); setIdx(i => (i + 1) % total); }, 4000);
+    return () => clearInterval(t);
+  }, [total]);
+
   useEffect(() => {
     const g = setInterval(() => setGlowIdx(i => (i + 1) % GLOW_COLORS.length), 1800);
     return () => clearInterval(g);
   }, []);
+
   const variants = {
     enter: (d) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0, scale: 0.96 }),
     center: { x: 0, opacity: 1, scale: 1 },
     exit: (d) => ({ x: d > 0 ? "-100%" : "100%", opacity: 0, scale: 0.96 }),
   };
+
   const c1 = GLOW_COLORS[glowIdx];
   const c2 = GLOW_COLORS[(glowIdx + 2) % GLOW_COLORS.length];
   const c3 = GLOW_COLORS[(glowIdx + 4) % GLOW_COLORS.length];
+
   return (
     <div className="relative w-full md:w-[360px] shrink-0" style={{ height: 500 }}>
-      {/* colour-cycling outer glow — big soft bloom */}
       <motion.div
         className="absolute rounded-3xl pointer-events-none"
         style={{ inset: -18, zIndex: 0 }}
         animate={{ boxShadow: `0 0 60px 20px ${c1}88, 0 0 120px 40px ${c2}44, 0 0 180px 60px ${c3}22` }}
         transition={{ duration: 1.6, ease: "easeInOut" }}
       />
-      {/* spinning conic border ring */}
       <motion.div
         className="absolute rounded-3xl pointer-events-none"
         style={{ inset: -3, zIndex: 1, borderRadius: 28 }}
@@ -113,36 +128,51 @@ const Gallery = () => {
         }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
       />
-      {/* inner mask so the conic doesn't bleed into content */}
       <div className="absolute rounded-[24px] pointer-events-none" style={{ inset: 3, background: "#07080C", zIndex: 2 }} />
       <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl" style={{ zIndex: 3 }}>
         <AnimatePresence custom={dir} initial={false}>
-          <motion.div key={idx} custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
+          <motion.div
+            key={idx}
+            custom={dir}
+            variants={variants}
+            initial="enter" animate="center" exit="exit"
             transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
-            className="absolute inset-0 flex flex-col items-center justify-center"
-            style={{ background: SLIDES[idx].bg }}
+            className="absolute inset-0"
           >
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-              <div className="w-24 h-24 rounded-full flex items-center justify-center font-fraunces font-black text-3xl"
-                style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)" }}>
-                OD
+            {photos.length > 0 ? (
+              // Real photo from admin
+              <img
+                src={slides[idx].src}
+                alt={slides[idx].name || "Gallery photo"}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              // Fallback gradient placeholder
+              <div className="w-full h-full flex flex-col items-center justify-center" style={{ background: slides[idx].bg }}>
+                <div className="w-24 h-24 rounded-full flex items-center justify-center font-fraunces font-black text-3xl"
+                  style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)" }}>
+                  OD
+                </div>
+                <p className="font-body text-[11px] tracking-[0.35em] uppercase mt-4" style={{ color: "rgba(255,255,255,0.45)" }}>{slides[idx].label}</p>
+                <div className="absolute bottom-0 left-0 right-0 h-32" style={{ background: "linear-gradient(to top,rgba(0,0,0,0.5),transparent)" }} />
+                <p className="absolute bottom-5 left-5 font-body text-[10px] tracking-[0.2em] uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Add your photo in admin</p>
               </div>
-              <p className="font-body text-[11px] tracking-[0.35em] uppercase" style={{ color: "rgba(255,255,255,0.45)" }}>{SLIDES[idx].label}</p>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-32" style={{ background: "linear-gradient(to top,rgba(0,0,0,0.5),transparent)" }} />
-            <p className="absolute bottom-5 left-5 font-body text-[10px] tracking-[0.2em] uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Add your photo here</p>
+            )}
           </motion.div>
         </AnimatePresence>
-        <button onClick={() => goTo((idx - 1 + SLIDES.length) % SLIDES.length)} className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center z-10" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}>
+
+        <button onClick={() => goTo((idx - 1 + total) % total)} className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center z-10" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}>
           <ChevronLeft size={16} color="white" />
         </button>
-        <button onClick={() => goTo((idx + 1) % SLIDES.length)} className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center z-10" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}>
+        <button onClick={() => goTo((idx + 1) % total)} className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center z-10" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}>
           <ChevronRight size={16} color="white" />
         </button>
       </div>
+
       <div className="flex items-center justify-center gap-2 mt-4">
-        {SLIDES.map((_, i) => (
-          <button key={i} onClick={() => goTo(i)} className="transition-all duration-300 rounded-full" style={{ width: i === idx ? 22 : 7, height: 7, background: i === idx ? "white" : "rgba(255,255,255,0.2)" }} />
+        {slides.map((_, i) => (
+          <button key={i} onClick={() => goTo(i)} className="transition-all duration-300 rounded-full"
+            style={{ width: i === idx ? 22 : 7, height: 7, background: i === idx ? "white" : "rgba(255,255,255,0.2)" }} />
         ))}
       </div>
     </div>
