@@ -294,27 +294,19 @@ const handleFiles = async (e) => {
   setUploading(true);
   for (let i = 0; i < files.length; i++) {
     try {
-      const file = files[i];
-      // Check if it's a video
-      const isVideo = file.type.startsWith('video/');
-      
-      const { url, publicId } = await uploadToCloudinary(file, isVideo ? "videos" : "gallery");
-      
+      const { url, publicId } = await uploadToCloudinary(files[i], "gallery");
       const { data, error } = await sb
         .from("photos")
         .insert({
           url: url,
           public_id: publicId,
-          name: file.name,
-          type: isVideo ? 'video' : 'photo',  // ← This saves the type!
+          name: files[i].name,
         })
         .select();
-      
       if (error) {
         console.error("Supabase error:", error);
         continue;
       }
-      
       if (data && data.length > 0) {
         setPhotos(prev => [...prev, data[0]]);
       }
@@ -351,7 +343,7 @@ const handleFiles = async (e) => {
           </p>
           <p className="font-body text-[12px] mt-1" style={{ color: C.faint }}>JPG, PNG, WEBP — multiple at once</p>
         </div>
-       <input type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} disabled={uploading} />
+      <input type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} disabled={uploading} />
       </label>
 
       {photos.length === 0 ? (
