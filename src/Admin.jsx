@@ -316,47 +316,46 @@ const Photos = () => {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-sb.from("photos").select("*").then(({ data }) => {
-  if (data) setPhotos(data);
-});
+    sb.from("photos").select("*").then(({ data }) => {
+      if (data) setPhotos(data);
+    });
+  }, []);
 
-const handleFiles = async (e) => {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
-  setUploading(true);
-  for (let i = 0; i < files.length; i++) {
-    try {
-      const { url, publicId } = await uploadToCloudinary(files[i], "gallery");
-      const { data } = await sb.from("photos").insert({
-        url,
-        public_id: publicId,
-        name: files[i].name,
-      });
-      if (data) setPhotos(prev => [...prev, data[0]]);
-    } catch (err) {
-      console.error("Upload failed:", err);
+  const handleFiles = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const { url, publicId } = await uploadToCloudinary(files[i], "gallery");
+        const { data } = await sb.from("photos").insert({
+          url,
+          public_id: publicId,
+          name: files[i].name,
+        });
+        if (data) setPhotos(prev => [...prev, data[0]]);
+      } catch (err) {
+        console.error("Upload failed:", err);
+      }
     }
-  }
-  setUploading(false);
-  e.target.value = "";
-};
+    setUploading(false);
+    e.target.value = "";
+  };
 
-const deletePhoto = async (id) => {
-  await sb.from("photos").delete({ id });
-  setPhotos(prev => prev.filter(p => p.id !== id));
-};
+  const deletePhoto = async (id) => {
+    await sb.from("photos").delete({ id });
+    setPhotos(prev => prev.filter(p => p.id !== id));
+  };
 
   return (
     <div>
       <h2 className="font-fraunces text-2xl font-bold mb-1" style={{ color: C.white }}>Gallery Photos</h2>
       <p className="font-body text-[13px] mb-7" style={{ color: C.faint }}>
-        Upload your photos here — they'll appear in the swiping gallery on your homepage.
-        <br />
+        Upload your photos — they go straight to Cloudinary and appear in the homepage gallery.
       </p>
 
-      {/* Upload zone */}
       <label
-        className="flex flex-col items-center justify-center gap-3 py-12 rounded-2xl cursor-pointer mb-7 transition-colors"
+        className="flex flex-col items-center justify-center gap-3 py-12 rounded-2xl cursor-pointer mb-7"
         style={{ border: `2px dashed ${C.border}`, background: C.fainter }}
         onDragOver={e => e.preventDefault()}
       >
@@ -364,13 +363,14 @@ const deletePhoto = async (id) => {
           <Image size={20} color={C.violet} />
         </div>
         <div className="text-center">
-          <p className="font-body text-[14px] font-medium" style={{ color: C.dim }}>Click to upload photos</p>
+          <p className="font-body text-[14px] font-medium" style={{ color: C.dim }}>
+            {uploading ? "Uploading..." : "Click to upload photos"}
+          </p>
           <p className="font-body text-[12px] mt-1" style={{ color: C.faint }}>JPG, PNG, WEBP — multiple at once</p>
         </div>
-        <input type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} />
+        <input type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} disabled={uploading} />
       </label>
 
-      {/* Photo grid */}
       {photos.length === 0 ? (
         <div className="text-center py-10">
           <p className="font-body text-[13px]" style={{ color: C.faint }}>No photos yet — upload your first one above.</p>
@@ -382,18 +382,14 @@ const deletePhoto = async (id) => {
               className="relative group rounded-2xl overflow-hidden"
               style={{ aspectRatio: "3/4", background: C.surface }}
             >
-              <img src={photo.src} alt={photo.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2" style={{ background: "rgba(0,0,0,0.6)" }}>
-                <button
-                  onClick={() => deletePhoto(photo.id)}
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{ background: `${C.bad}22`, border: `1px solid ${C.bad}44` }}
-                >
+              <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
+                <button onClick={() => deletePhoto(photo.id)} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: `${C.bad}22`, border: `1px solid ${C.bad}44` }}>
                   <Trash2 size={14} color={C.bad} />
                 </button>
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-2" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}>
-                <p className="font-body text-[9.5px] truncate" style={{ color: "rgba(255,255,255,0.5)" }}>{photo.addedAt}</p>
+                <p className="font-body text-[9.5px] truncate" style={{ color: "rgba(255,255,255,0.5)" }}>{photo.name}</p>
               </div>
             </motion.div>
           ))}
@@ -402,7 +398,6 @@ const deletePhoto = async (id) => {
     </div>
   );
 };
-
 /* ---------------------------------------------------------------
    UPLOAD CONTENT
 --------------------------------------------------------------- */
