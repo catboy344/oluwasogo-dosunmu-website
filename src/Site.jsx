@@ -117,13 +117,13 @@ const Gallery = () => {
 /* ---------------------------------------------------------------
    ABOUT ME — structured, designed, not just text
 --------------------------------------------------------------- */
-const BehindtheWords = () => (
+const AboutMe = () => (
   <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }} className="flex-1 flex flex-col justify-center py-4 min-w-0">
 
     {/* top label */}
     <div className="flex items-center gap-3 mb-6">
       <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.15), transparent)" }} />
-      <p className="font-body text-[10px] tracking-[0.4em] uppercase shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>Behind the Words</p>
+      <p className="font-body text-[10px] tracking-[0.4em] uppercase shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>About Me</p>
       <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15))" }} />
     </div>
 
@@ -149,7 +149,7 @@ const BehindtheWords = () => (
 
     {/* body */}
     <p className="font-body text-[13.5px] leading-[1.85]" style={{ color: "rgba(255,255,255,0.5)", maxWidth: 480 }}>
-     I am an author, poet, speaker, and creative visionary passionate about inspiring lives through words, faith, and music. Through books, poetry, sermons, prayer sessions, and motivational messages, I seek to inspire hope, ignite purpose, and point people toward God.
+      An author, poet, speaker, and creative visionary passionate about inspiring lives through words, faith, and music. Through books, poetry, sermons, prayer sessions, and motivational messages, I seek to inspire hope, ignite purpose, and point people toward God.
     </p>
 
     {/* stats row */}
@@ -184,24 +184,17 @@ const BurstNav = ({ onSelectSpace }) => {
   const handleToggle = () => {
     if (phase === "closed") {
       setPhase("burst");
-    setTimeout(() => {
-  setPhase("list");
-}, 1200);
+      setTimeout(() => setPhase("list"), 700);
     } else {
       setPhase("closed");
     }
   };
 
   // positions where items scatter to (relative to button)
-   const burstPositions = [
-  { x: -240, y: 120 }, // far left
-  { x: -160, y: 180 }, // left outer
-  { x: -80,  y: 250 }, // left inner
-  { x: 0,    y: 300 }, // center bottom
-  { x: 80,   y: 250 }, // right inner
-  { x: 160,  y: 180 }, // right outer
-  { x: 240,  y: 120 }, // far right
-];
+  const burstPositions = [
+    { x: -220, y: -90 }, { x: 100, y: -110 }, { x: 200, y: -40 },
+    { x: 180, y: 70 }, { x: -30, y: 120 }, { x: -200, y: 70 }, { x: -180, y: -30 },
+  ];
 
   return (
     <div className="relative" ref={ref}>
@@ -211,7 +204,7 @@ const BurstNav = ({ onSelectSpace }) => {
         style={{ color: "white", background: phase !== "closed" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}
       >
         My World
-        <motion.span animate={{ rotate: phase !== "closed" ? 180 : 0 }} transition={{ duration: 2.5 }}>
+        <motion.span animate={{ rotate: phase !== "closed" ? 180 : 0 }} transition={{ duration: 0.3 }}>
           <ChevronDown size={14} />
         </motion.span>
       </button>
@@ -226,14 +219,8 @@ const BurstNav = ({ onSelectSpace }) => {
                 initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
                 animate={{ x: burstPositions[i].x, y: burstPositions[i].y, opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-             transition={{
-  duration: 0.9,
-  delay: i * 0.04,
-  type: "spring",
-  stiffness: 120,
-  damping: 12
-}}
-              className="absolute top-12 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
+                transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute top-0 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
                 style={{ background: `${s.accent}22`, border: `1px solid ${s.accent}55`, whiteSpace: "nowrap" }}
               >
                 <s.Icon size={13} color={s.accent} />
@@ -244,43 +231,19 @@ const BurstNav = ({ onSelectSpace }) => {
             {/* LIST PHASE — settle into dropdown */}
             {phase === "list" && (
               <motion.div
-              initial={{
-  opacity: 0,
-  scale: 0.95,
-  y: -25
-}}
-animate={{
-  opacity: 1,
-  scale: 1,
-  y: 0
-}}
+                initial={{ opacity: 0, scale: 0.92, y: -6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.92, y: -6 }}
-            transition={{
-  duration: 0.5,
-  ease: [0.16, 1, 0.3, 1]
-}}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="absolute right-0 mt-3 w-[290px] rounded-2xl overflow-hidden z-50"
                 style={{ background: "rgba(12,13,18,0.97)", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 30px 80px rgba(0,0,0,0.9)", backdropFilter: "blur(20px)" }}
               >
-               {SPACES.map((s, i) => (
-  <motion.button
-    key={s.id}
-    initial={{
-      opacity: 0,
-      y: -40,
-      scale: 0.85
-    }}
-    animate={{
-      opacity: 1,
-      y: 0,
-      scale: 1
-    }}
-    transition={{
-   delay: (SPACES.length - 1 - i) * 0.2,
-      type: "spring",
-      stiffness: 300,
-      damping: 20
-    }}
+                {SPACES.map((s, i) => (
+                  <motion.button
+                    key={s.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
                     onClick={() => { setPhase("closed"); onSelectSpace(s.id); }}
                     className="w-full text-left px-5 py-4 flex items-center gap-3.5 group hover:bg-white/[0.04] transition-colors"
                     style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)" }}
@@ -302,7 +265,7 @@ animate={{
       </AnimatePresence>
     </div>
   );
-};     how about now/
+};
 
 /* ---------------------------------------------------------------
    NAV
@@ -369,12 +332,12 @@ const AuthModal = ({ onClose, onAuth }) => {
   const dodgeMsgs = ["Hmm, not yet... 😏", "Almost! Try again 😅", "Okay okay, you got me 😂"];
 
   return (
-      <motion.div className="fixed inset-0 z-50 flex items-center justify-center px-5" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <motion.div className="fixed inset-0 z-50 flex items-center justify-center px-5" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 3, y: 0, scale: 3 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20 }}
-        transition={{ duration: 2.5, ease: [1.50, 2, 1, 2] }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-sm rounded-3xl p-8 relative"
         style={{ background: "#0E1015", border: "1px solid rgba(255,255,255,0.09)" }}
       >
@@ -495,7 +458,11 @@ const SpaceView = ({ space, user, onBack }) => {
     <div className="min-h-screen" style={{ background: "#07080C" }}>
       <div className="relative pt-24 pb-16 px-6 md:px-10 text-center" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 60% 50% at 50% 0%, ${space.accent}25, transparent)` }} />
-        <button onClick={onBack} className="absolute top-6 left-6 flex items-center gap-1.5 font-body text-[12.5px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 z-20 flex items-center gap-2 font-body text-[13px] px-4 py-2 rounded-full"
+          style={{ color: "white", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+        >
           <ArrowLeft size={14} /> Back
         </button>
         <div className="relative">
@@ -639,9 +606,13 @@ export default function Site() {
       <Nav onSelectSpace={handleSelectSpace} onGoHome={() => { setView("home"); window.scrollTo(0, 0); }} />
 
       {user && view !== "home" && (
-        <div className="fixed top-4 right-24 z-30">
-          <button onClick={logout} className="flex items-center gap-1.5 font-body text-[11.5px] px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}>
-            <LogOut size={11} /> Log out
+        <div className="fixed bottom-6 right-6 z-30">
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 font-body text-[12px] px-4 py-2.5 rounded-full"
+            style={{ background: "rgba(20,20,28,0.9)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(10px)" }}
+          >
+            <LogOut size={13} /> Log out
           </button>
         </div>
       )}
