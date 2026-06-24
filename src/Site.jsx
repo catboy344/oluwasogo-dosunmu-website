@@ -388,14 +388,14 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
       <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between relative overflow-hidden">
         {/* LEFT: Logo - with fade overlay */}
         <div className="relative z-20 shrink-0">
-          <button onClick={onGoHome} className="font-fraunces font-bold text-[18px] md:text-[20px]" style={{ color: "#FFFFFF" }}>
+          <button onClick={onGoHome} className="font-fraunces font-bold text-[18px]" style={{ color: "white" }}>
             Oluwasogo Dosunmu
           </button>
-          {/* Fade overlay on the right of the logo - WIDE for fast fade */}
+          {/* Fade overlay on the right of the logo */}
           <div
-            className="absolute right-0 top-0 bottom-0 w-64 pointer-events-none"
+            className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none"
             style={{
-              background: "linear-gradient(to right, transparent, rgba(7,8,12,0.95), rgba(7,8,12,1))",
+              background: "linear-gradient(to right, transparent, rgba(7,8,12,0.95))",
             }}
           />
         </div>
@@ -403,14 +403,14 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
         {/* CENTER: Moving titles */}
         <div className="absolute left-0 right-0 top-0 bottom-0 z-10 flex items-center overflow-hidden">
           <motion.div
-            className="flex gap-8 whitespace-nowrap"
-            animate={{ x: ["20%", "-20%"] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+            className="flex gap-10 whitespace-nowrap"
+            animate={{ x: ["100%", "-100%"] }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
           >
             {titles.map((item, i) => (
               <span
                 key={`first-${i}`}
-                className="font-fraunces text-xs md:text-sm font-bold tracking-wider"
+                className="font-fraunces text-sm md:text-base font-bold tracking-wider"
                 style={{ color: item.color }}
               >
                 {item.label}
@@ -419,7 +419,7 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
             {titles.map((item, i) => (
               <span
                 key={`second-${i}`}
-                className="font-fraunces text-xs md:text-sm font-bold tracking-wider"
+                className="font-fraunces text-sm md:text-base font-bold tracking-wider"
                 style={{ color: item.color }}
               >
                 {item.label}
@@ -431,11 +431,11 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
         {/* RIGHT: My World button */}
         <div className="relative z-20 shrink-0">
           <BurstNav onSelectSpace={onSelectSpace} />
-          {/* Fade overlay on the left of the button - WIDE for fast fade */}
+          {/* Fade overlay on the left of the button */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-48 pointer-events-none"
+            className="absolute left-0 top-0 bottom-0 w-8 pointer-events-none"
             style={{
-              background: "linear-gradient(to left, transparent, rgba(7,8,12,0.95), rgba(7,8,12,1))",
+              background: "linear-gradient(to left, transparent, rgba(7,8,12,0.95))",
             }}
           />
         </div>
