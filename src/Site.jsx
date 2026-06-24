@@ -365,78 +365,15 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
     document.addEventListener("scroll", onScroll);
     return () => document.removeEventListener("scroll", onScroll);
   }, []);
-
-  const titles = [
-    { label: "HER・§HUG£Z¥", color: "#E85D9E" },
-    { label: "Writer", color: "#3DD68C" },
-    { label: "Musicologist", color: "#E8B23D" },
-  ];
-
   return (
     <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.7 }}
+      initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}
       className="fixed top-0 left-0 right-0 z-40"
-      style={{
-        background: scrolled ? "rgba(7,8,12,0.9)" : "rgba(7,8,12,0.5)",
-        backdropFilter: scrolled ? "blur(16px)" : "blur(8px)",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
-        transition: "all 0.4s"
-      }}
+      style={{ background: scrolled ? "rgba(7,8,12,0.9)" : "transparent", backdropFilter: scrolled ? "blur(16px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.07)" : "none", transition: "all 0.4s" }}
     >
-      <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between relative overflow-hidden">
-        {/* LEFT: Logo - with fade overlay */}
-        <div className="relative z-20 shrink-0">
-          <button onClick={onGoHome} className="font-fraunces font-bold text-[18px] md:text-[20px]" style={{ color: "#FFFFFF" }}>
-            Oluwasogo Dosunmu
-          </button>
-          <div
-            className="absolute right-0 top-0 bottom-0 w-32 pointer-events-none"
-            style={{
-              background: "linear-gradient(to right, transparent, rgba(7,8,12,0.95))",
-            }}
-          />
-        </div>
-
-        {/* CENTER: Moving titles */}
-        <div className="absolute left-0 right-0 top-0 bottom-0 z-10 flex items-center overflow-hidden">
-          <motion.div
-            className="flex gap-8 whitespace-nowrap"
-            animate={{ x: ["30%", "-30%"] }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          >
-            {titles.map((item, i) => (
-              <span
-                key={`first-${i}`}
-                className="font-fraunces text-xs md:text-sm font-bold tracking-wider"
-                style={{ color: item.color }}
-              >
-                {item.label}
-              </span>
-            ))}
-            {titles.map((item, i) => (
-              <span
-                key={`second-${i}`}
-                className="font-fraunces text-xs md:text-sm font-bold tracking-wider"
-                style={{ color: item.color }}
-              >
-                {item.label}
-              </span>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* RIGHT: My World button */}
-        <div className="relative z-20 shrink-0">
-          <BurstNav onSelectSpace={onSelectSpace} />
-          <div
-            className="absolute left-0 top-0 bottom-0 w-32 pointer-events-none"
-            style={{
-              background: "linear-gradient(to left, transparent, rgba(7,8,12,0.95))",
-            }}
-          />
-        </div>
+      <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between">
+        <button onClick={onGoHome} className="font-fraunces font-bold text-[18px]" style={{ color: "white" }}>Oluwasogo Dosunmu</button>
+        <BurstNav onSelectSpace={onSelectSpace} />
       </div>
     </motion.header>
   );
