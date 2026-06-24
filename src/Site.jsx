@@ -367,9 +367,9 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
   }, []);
 
   const titles = [
-    { label: "HER・§HUG£Z¥", color: "Gold" },
-    { label: "Writer", color: "Cream" },
-    { label: "Musicologist", color: "White" },
+    { label: "HER・§HUG£Z¥", color: "#E85D9E" },
+    { label: "Writer", color: "#3DD68C" },
+    { label: "Musicologist", color: "#E8B23D" },
   ];
 
   return (
@@ -393,8 +393,26 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
         <BurstNav onSelectSpace={onSelectSpace} />
       </div>
 
-      {/* 👇 MOVING TITLES - right below the nav bar */}
-      <div className="w-full overflow-hidden py-1.5" style={{ background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+      {/* 👇 MOVING TITLES with fade effect */}
+      <div className="w-full overflow-hidden py-1.5 relative" style={{ background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        {/* Fade on the LEFT side (disappears behind the name) */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
+          style={{
+            background: "linear-gradient(to right, #07080C, transparent)",
+            opacity: 0.9,
+          }}
+        />
+        
+        {/* Fade on the RIGHT side (enters from the right) */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
+          style={{
+            background: "linear-gradient(to left, #07080C, transparent)",
+            opacity: 0.9,
+          }}
+        />
+
         <motion.div
           className="flex gap-12 whitespace-nowrap"
           animate={{ x: ["0%", "-100%"] }}
@@ -425,7 +443,6 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
     </motion.header>
   );
 };
-
 /* ---------------------------------------------------------------
    AUTH MODAL (unchanged)
 --------------------------------------------------------------- */
