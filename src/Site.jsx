@@ -356,6 +356,52 @@ const BurstNav = ({ onSelectSpace }) => {
 };
 
 /* ---------------------------------------------------------------
+   SCROLLING TILES
+--------------------------------------------------------------- */
+const TILES_ROW1 = ["Author","Podcast","Speaker","The Healing Pen","Poet","Holy Ghost","Sogo Speaks","Visionary","In His Presence","Poetry","Sogo Preaches","Faith","Worship","Impact"];
+const TILES_ROW2 = ["Words","Purpose","Sermons","Whispers","Prayer","Books","Hope","Music","Healing","Inspire","God","Stories","Acoustic","Letters"];
+const TILE_COLORS = [
+  { bg:"rgba(124,58,237,0.15)", border:"rgba(124,58,237,0.3)", color:"#a78bfa", dot:"#a78bfa" },
+  { bg:"rgba(56,189,176,0.12)", border:"rgba(56,189,176,0.3)", color:"#5eead4", dot:"#5eead4" },
+  { bg:"rgba(232,178,61,0.12)", border:"rgba(232,178,61,0.3)", color:"#fbbf24", dot:"#fbbf24" },
+  { bg:"rgba(232,93,158,0.12)", border:"rgba(232,93,158,0.3)", color:"#f472b6", dot:"#f472b6" },
+  { bg:"rgba(37,99,235,0.12)",  border:"rgba(37,99,235,0.3)",  color:"#60a5fa", dot:"#60a5fa" },
+  { bg:"rgba(61,214,140,0.12)", border:"rgba(61,214,140,0.3)", color:"#4ade80", dot:"#4ade80" },
+  { bg:"rgba(242,148,77,0.12)", border:"rgba(242,148,77,0.3)", color:"#fb923c", dot:"#fb923c" },
+];
+
+const TileRow = ({ tiles, reverse }) => {
+  const doubled = [...tiles, ...tiles];
+  return (
+    <div style={{ position:"relative", overflow:"hidden", height:44, display:"flex", alignItems:"center" }}>
+      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:80, background:"linear-gradient(to right, #07080C, transparent)", zIndex:2, pointerEvents:"none" }} />
+      <div style={{ position:"absolute", right:0, top:0, bottom:0, width:80, background:"linear-gradient(to left, #07080C, transparent)", zIndex:2, pointerEvents:"none" }} />
+      <motion.div
+        style={{ display:"flex", gap:10, position:"absolute", left:0 }}
+        animate={{ x: reverse ? ["0%", "50%"] : ["0%", "-50%"] }}
+        transition={{ duration: reverse ? 22 : 18, repeat: Infinity, ease: "linear" }}
+      >
+        {doubled.map((label, i) => {
+          const c = TILE_COLORS[i % TILE_COLORS.length];
+          return (
+            <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"0 16px", height:38, borderRadius:10, background:c.bg, border:`1px solid ${c.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
+              <div style={{ width:6, height:6, borderRadius:"50%", background:c.dot, flexShrink:0 }} />
+              <span style={{ fontFamily:"'Outfit',sans-serif", fontSize:13, fontWeight:500, color:c.color }}>{label}</span>
+            </div>
+          );
+        })}
+      </motion.div>
+    </div>
+  );
+};
+
+const ScrollingTiles = () => (
+  <div style={{ width:"100%", display:"flex", flexDirection:"column", gap:10, padding:"14px 0", overflow:"hidden" }}>
+    <TileRow tiles={TILES_ROW1} reverse={false} />
+    <TileRow tiles={TILES_ROW2} reverse={true} />
+  </div>
+);
+/* ---------------------------------------------------------------
    NAV (unchanged)
 --------------------------------------------------------------- */
 const Nav = ({ onSelectSpace, onGoHome }) => {
@@ -366,16 +412,19 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
     return () => document.removeEventListener("scroll", onScroll);
   }, []);
   return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}
-      className="fixed top-0 left-0 right-0 z-40"
-      style={{ background: scrolled ? "rgba(7,8,12,0.9)" : "transparent", backdropFilter: scrolled ? "blur(16px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.07)" : "none", transition: "all 0.4s" }}
-    >
-      <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between">
-        <button onClick={onGoHome} className="font-fraunces font-bold text-[18px]" style={{ color: "white" }}>Oluwasogo Dosunmu</button>
-        <BurstNav onSelectSpace={onSelectSpace} />
-      </div>
-    </motion.header>
+    <>
+      <motion.header
+        initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}
+        className="fixed top-0 left-0 right-0 z-40"
+        style={{ background: scrolled ? "rgba(7,8,12,0.9)" : "transparent", backdropFilter: scrolled ? "blur(16px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.07)" : "none", transition: "all 0.4s" }}
+      >
+        <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between">
+          <button onClick={onGoHome} className="font-fraunces font-bold text-[18px]" style={{ color: "white" }}>Oluwasogo Dosunmu</button>
+          <BurstNav onSelectSpace={onSelectSpace} />
+        </div>
+      </motion.header>
+      <ScrollingTiles />
+    </>
   );
 };
 /* ---------------------------------------------------------------
