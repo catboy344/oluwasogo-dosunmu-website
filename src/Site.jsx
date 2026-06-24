@@ -390,8 +390,8 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
         <div className="absolute left-0 right-0 top-0 bottom-0 z-10 flex items-center overflow-hidden">
           <motion.div
             className="flex gap-8 whitespace-nowrap"
-            animate={{ x: ["30%", "-30%"] }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            animate={{ x: ["15%", "-15%"] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           >
             {titles.map((item, i) => (
               <span
