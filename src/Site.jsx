@@ -404,7 +404,7 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
           <motion.div
             className="flex gap-8 whitespace-nowrap"
             animate={{ x: ["30%", "-30%"] }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
           >
             {titles.map((item, i) => (
               <span
@@ -441,7 +441,6 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
     </motion.header>
   );
 };
-
 /* ---------------------------------------------------------------
    AUTH MODAL (unchanged)
 --------------------------------------------------------------- */
