@@ -264,43 +264,113 @@ const AboutMe = () => (
 /* ---------------------------------------------------------------
    BURST NAV (unchanged)
 --------------------------------------------------------------- */
-{phase === "list" && (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95, y: -25 }}
-    animate={{ opacity: 1, scale: 1, y: 0 }}
-    exit={{ opacity: 0, scale: 0.92, y: -6 }}
-    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-    className="absolute left-0 mt-3 w-[290px] rounded-2xl overflow-hidden"
-    style={{ 
-      background: "rgba(12,13,18,0.97)", 
-      border: "1px solid rgba(255,255,255,0.09)", 
-      boxShadow: "0 30px 80px rgba(0,0,0,0.9)", 
-      backdropFilter: "blur(20px)",
-      zIndex: 99999
-    }}
-  >
-    {SPACES.map((s, i) => (
-      <motion.button
-        key={s.id}
-        initial={{ opacity: 0, y: -40, scale: 0.85 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: (SPACES.length - 1 - i) * 0.2, type: "spring", stiffness: 300, damping: 20 }}
-        onClick={() => { setPhase("closed"); onSelectSpace(s.id); }}
-        className="w-full text-left px-5 py-4 flex items-center gap-3.5 group hover:bg-white/[0.04] transition-colors"
-        style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)" }}
+const BurstNav = ({ onSelectSpace }) => {
+  const [phase, setPhase] = useState("closed");
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const onClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        if (phase !== "closed") setPhase("closed");
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [phase]);
+
+  const handleToggle = () => {
+    if (phase === "closed") {
+      setPhase("burst");
+      setTimeout(() => { setPhase("list"); }, 1200);
+    } else {
+      setPhase("closed");
+    }
+  };
+
+  const burstPositions = [
+    { x: -240, y: 120 },
+    { x: -160, y: 180 },
+    { x: -80,  y: 250 },
+    { x: 0,    y: 300 },
+    { x: 80,   y: 250 },
+    { x: 160,  y: 180 },
+    { x: 240,  y: 120 },
+  ];
+
+  return (
+    <div className="relative" ref={ref} style={{ zIndex: 9999 }}>
+      <button
+        onClick={handleToggle}
+        className="flex items-center gap-2 font-body text-[13px] tracking-[0.12em] uppercase px-5 py-2.5 rounded-full"
+        style={{ color: "white", background: phase !== "closed" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}
       >
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg">
-          {s.emoji}
-        </div>
-        <span>
-          <span className="block font-body text-[13.5px] font-medium" style={{ color: "rgba(255,255,255,0.9)" }}>{s.title}</span>
-          <span className="block font-body text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>{s.tag}</span>
-        </span>
-        <div className="ml-auto w-2 h-2 rounded-full shrink-0" style={{ background: s.accent }} />
-      </motion.button>
-    ))}
-  </motion.div>
-)}
+        My World
+        <motion.span animate={{ rotate: phase !== "closed" ? 180 : 0 }} transition={{ duration: 2.5 }}>
+          <ChevronDown size={14} />
+        </motion.span>
+      </button>
+
+      <AnimatePresence>
+        {(phase === "burst" || phase === "list") && (
+          <>
+            {phase === "burst" && SPACES.map((s, i) => (
+              <motion.div
+                key={`burst-${s.id}`}
+                initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
+                animate={{ x: burstPositions[i].x, y: burstPositions[i].y, opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.9, delay: i * 0.04, type: "spring", stiffness: 120, damping: 12 }}
+                className="absolute top-12 right-0 z-50 flex items-center gap-1.5 px-3 py-2 rounded-2xl pointer-events-none"
+                style={{ background: `${s.accent}22`, border: `1px solid ${s.accent}55`, whiteSpace: "nowrap" }}
+              >
+                <s.Icon size={13} color={s.accent} />
+                <span className="font-body text-[12px]" style={{ color: "white" }}>{s.title}</span>
+              </motion.div>
+            ))}
+
+            {phase === "list" && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -25 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: -6 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute left-0 mt-3 w-[290px] rounded-2xl overflow-hidden"
+                style={{ 
+                  background: "rgba(12,13,18,0.97)", 
+                  border: "1px solid rgba(255,255,255,0.09)", 
+                  boxShadow: "0 30px 80px rgba(0,0,0,0.9)", 
+                  backdropFilter: "blur(20px)",
+                  zIndex: 99999
+                }}
+              >
+                {SPACES.map((s, i) => (
+                  <motion.button
+                    key={s.id}
+                    initial={{ opacity: 0, y: -40, scale: 0.85 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: (SPACES.length - 1 - i) * 0.2, type: "spring", stiffness: 300, damping: 20 }}
+                    onClick={() => { setPhase("closed"); onSelectSpace(s.id); }}
+                    className="w-full text-left px-5 py-4 flex items-center gap-3.5 group hover:bg-white/[0.04] transition-colors"
+                    style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)" }}
+                  >
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg">
+                      {s.emoji}
+                    </div>
+                    <span>
+                      <span className="block font-body text-[13.5px] font-medium" style={{ color: "rgba(255,255,255,0.9)" }}>{s.title}</span>
+                      <span className="block font-body text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>{s.tag}</span>
+                    </span>
+                    <div className="ml-auto w-2 h-2 rounded-full shrink-0" style={{ background: s.accent }} />
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 /* ---------------------------------------------------------------
    NAV (unchanged)
 --------------------------------------------------------------- */
