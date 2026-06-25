@@ -549,6 +549,23 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
     }
   };
 
+  // 🔥 UPDATED: Google Login Handler with redirect
+  const handleGoogleLogin = async () => {
+    try {
+      const { data, error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin, // Redirect back to your site
+        },
+      });
+      if (error) throw error;
+      // User will be redirected to Google, then back to your site
+      // The checkSession function in Site component will handle the rest
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const dodgeMsgs = ["Hmm, not yet... 😏", "Almost! Try again 😅", "Okay okay, you got me 🎉"];
 
   return (
@@ -711,17 +728,9 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
               <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
             </div>
             
+            {/* 🔥 UPDATED: Google Login Button with handleGoogleLogin */}
             <button 
-              onClick={async () => {
-                try {
-                  const { data, error } = await sb.auth.signInWithOAuth({
-                    provider: 'google',
-                  });
-                  if (error) throw error;
-                } catch (err) {
-                  setError(err.message);
-                }
-              }} 
+              onClick={handleGoogleLogin}
               className="w-full py-3.5 rounded-2xl font-body text-[13.5px] flex items-center justify-center gap-2"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)" }}
             >
@@ -923,20 +932,38 @@ export default function Site() {
   const [authOpen, setAuthOpen] = useState(false);
   const [pendingSpace, setPendingSpace] = useState(null);
 
-  // Check sessionStorage on load and verify session with Supabase
+  // Check session on load - handles both email and Google login
   useEffect(() => {
     const checkSession = async () => {
       const storedUser = sessionStorage.getItem("user-profile");
+      const { data: { session } } = await sb.auth.getSession();
       
-      if (storedUser) {
-        const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        // User is logged in via Supabase
+        const user = session.user;
+        const profile = {
+          name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+          email: user.email,
+          id: user.id
+        };
         
-        if (session) {
-          setUser(JSON.parse(storedUser));
-        } else {
-          sessionStorage.removeItem("user-profile");
-          setUser(null);
+        // Save to sessionStorage if not already there
+        if (!storedUser) {
+          sessionStorage.setItem("user-profile", JSON.stringify(profile));
         }
+        
+        setUser(profile);
+        
+        // If there was a pending space, navigate to it
+        if (pendingSpace) {
+          setView(pendingSpace);
+          setPendingSpace(null);
+          window.scrollTo(0, 0);
+        }
+      } else if (storedUser) {
+        // No session but stored user exists - clear it
+        sessionStorage.removeItem("user-profile");
+        setUser(null);
       }
     };
     
