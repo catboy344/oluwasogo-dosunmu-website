@@ -334,8 +334,14 @@ const BurstNav = ({ onSelectSpace }) => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.92, y: -6 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute right-0 mt-3 w-[290px] rounded-2xl overflow-hidden z-50"
-                style={{ background: "rgba(12,13,18,0.97)", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 30px 80px rgba(0,0,0,0.9)", backdropFilter: "blur(20px)" }}
+                className="absolute right-0 mt-3 w-[290px] rounded-2xl overflow-hidden"
+                style={{ 
+                  background: "rgba(12,13,18,0.97)", 
+                  border: "1px solid rgba(255,255,255,0.09)", 
+                  boxShadow: "0 30px 80px rgba(0,0,0,0.9)", 
+                  backdropFilter: "blur(20px)",
+                  zIndex: 9999 // Add this line
+                }}
               >
                 {SPACES.map((s, i) => (
                   <motion.button
@@ -365,7 +371,6 @@ const BurstNav = ({ onSelectSpace }) => {
     </div>
   );
 };
-
 /* ---------------------------------------------------------------
    NAV (unchanged)
 --------------------------------------------------------------- */
