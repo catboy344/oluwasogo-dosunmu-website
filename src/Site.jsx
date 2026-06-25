@@ -453,7 +453,7 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
   );
 };
 /* ---------------------------------------------------------------
-   AUTH MODAL - WITH CURSOR-REACTIVE ANIMATIONS
+   AUTH MODAL - TILES + CURSOR-REACTIVE ANIMATIONS
 --------------------------------------------------------------- */
 const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
   const { isDark } = useTheme();
@@ -487,7 +487,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
     setMousePos({ x: 0, y: 0 });
   };
 
-  // Animated tiles data
+  // Animated tiles data - 43 tiles
   const animatedTiles = [
     "Author", "Poet", "Speaker", "Visionary", "Podcast", "Sermon", "Worship",
     "Prayer", "Faith", "Impact", "Words", "Hope", "Purpose", "Inspire",
@@ -654,10 +654,11 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
           const colorIndex = i % tileColors.length;
           const rotation = -15 + Math.random() * 30;
           
-          // 🔥 CURSOR REACTION - tiles move away from cursor
-          const cursorInfluence = isHovering ? 80 : 0;
-          const reactX = mousePos.x * cursorInfluence * (Math.random() * 0.5 + 0.5);
-          const reactY = mousePos.y * cursorInfluence * (Math.random() * 0.5 + 0.5);
+          // 🔥 CURSOR REACTION - tiles move away/toward cursor
+          const cursorInfluence = isHovering ? 60 : 0;
+          const direction = i % 2 === 0 ? 1 : -1; // Some move away, some toward
+          const reactX = mousePos.x * cursorInfluence * direction * (0.5 + Math.random() * 0.5);
+          const reactY = mousePos.y * cursorInfluence * direction * (0.5 + Math.random() * 0.5);
           
           return (
             <motion.div
@@ -680,8 +681,6 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
                 boxShadow: isDark 
                   ? '0 8px 32px rgba(0,0,0,0.2)' 
                   : '0 8px 32px rgba(0,0,0,0.04)',
-                rotate: rotation,
-                transformOrigin: 'center',
               }}
               animate={{
                 x: [0, 80, -50, 60, -30, 40, 0],
@@ -698,15 +697,8 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
               }}
               // 🔥 Apply cursor reaction as inline style
               style={{
-                transform: isHovering 
-                  ? `translate(${reactX * 0.5}px, ${reactY * 0.5}px)`
-                  : 'translate(0px, 0px)',
+                transform: `translate(${reactX * 0.5}px, ${reactY * 0.5}px)`,
                 transition: 'transform 0.15s ease-out',
-                ...(i % 2 === 0 && {
-                  transform: isHovering 
-                    ? `translate(${-reactX * 0.7}px, ${-reactY * 0.7}px)`
-                    : 'translate(0px, 0px)',
-                })
               }}
             >
               {tile}
@@ -718,17 +710,14 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
         <motion.div
           className="absolute rounded-full pointer-events-none"
           style={{
-            width: 300,
-            height: 300,
-            background: `radial-gradient(circle, ${isDark ? 'rgba(124,58,237,0.12)' : 'rgba(124,58,237,0.06)'}, transparent 70%)`,
-            filter: 'blur(40px)',
-            x: mousePos.x * 200,
-            y: mousePos.y * 200,
-            transition: 'all 0.3s ease-out',
+            width: 400,
+            height: 400,
+            background: `radial-gradient(circle, ${isDark ? 'rgba(124,58,237,0.08)' : 'rgba(124,58,237,0.04)'}, transparent 70%)`,
+            filter: 'blur(50px)',
           }}
           animate={{
-            x: mousePos.x * 200,
-            y: mousePos.y * 200,
+            x: mousePos.x * 250 - 200,
+            y: mousePos.y * 250 - 200,
           }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         />
@@ -737,7 +726,6 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
         {[...Array(30)].map((_, i) => {
           const dotX = Math.random() * 100;
           const dotY = Math.random() * 100;
-          const dotReact = isHovering ? 30 : 0;
           
           return (
             <motion.div
@@ -763,29 +751,24 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
           );
         })}
         
-        {/* 🔥 CURSOR TRAIL - follows cursor with delay */}
+        {/* 🔥 CURSOR TRAIL */}
         <motion.div
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none rounded-full"
           style={{
-            width: 60,
-            height: 60,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${isDark ? 'rgba(124,58,237,0.08)' : 'rgba(124,58,237,0.04)'}, transparent)`,
-            filter: 'blur(20px)',
-            x: mousePos.x * 200 - 30,
-            y: mousePos.y * 200 - 30,
-            transition: 'all 0.5s ease-out',
+            width: 80,
+            height: 80,
+            background: `radial-gradient(circle, ${isDark ? 'rgba(124,58,237,0.06)' : 'rgba(124,58,237,0.03)'}, transparent)`,
+            filter: 'blur(25px)',
           }}
           animate={{
-            x: mousePos.x * 200 - 30,
-            y: mousePos.y * 200 - 30,
-            scale: isHovering ? [1, 1.3, 1] : 1,
+            x: mousePos.x * 250 - 40,
+            y: mousePos.y * 250 - 40,
           }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
 
-      {/* Auth Modal - Same as before */}
+      {/* Auth Modal */}
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -801,7 +784,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
           backdropFilter: "blur(20px)"
         }}
       >
-        {/* Modal content - same as before */}
+        {/* Modal content */}
         <button 
           onClick={() => { 
             onClose(); 
