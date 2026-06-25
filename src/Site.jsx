@@ -471,7 +471,6 @@ const AuthModal = ({ onClose, onAuth }) => {
 
     try {
       if (mode === "signup") {
-        // SIGN UP
         const { data, error } = await sb.auth.signUp({
           email: email,
           password: password,
@@ -481,7 +480,6 @@ const AuthModal = ({ onClose, onAuth }) => {
         });
         
         if (error) {
-          // Check if user already exists
           if (error.message.includes("User already registered") || 
               error.message.includes("already registered")) {
             setError("This email is already registered. Please log in instead.");
@@ -498,13 +496,19 @@ const AuthModal = ({ onClose, onAuth }) => {
         }
         
         if (data.user) {
-          // Check if email confirmation is required
+          // Don't auto-login - wait for email confirmation
           if (data.user.confirmed_at === null) {
-            setError("📧 Confirmation email sent! Please check your inbox and spam folder.");
+            setError("✅ Confirmation email sent! Please check your email and confirm before logging in.");
+            setLoading(false);
+            setEmail("");
+            setPassword("");
+            setName("");
             setTimeout(() => {
               onClose();
-            }, 4000);
+              setError("");
+            }, 5000);
           } else {
+            // User is already confirmed
             onAuth({ name: name, email: email, id: data.user.id });
           }
         }
