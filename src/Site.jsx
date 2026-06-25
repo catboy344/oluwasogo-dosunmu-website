@@ -433,6 +433,8 @@ const AuthModal = ({ onClose, onAuth }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [dodgeCount, setDodgeCount] = useState(0);
   const [btnPos, setBtnPos] = useState({ x: 0, y: 0 });
   const [shake, setShake] = useState(false);
@@ -448,22 +450,61 @@ const AuthModal = ({ onClose, onAuth }) => {
     setTimeout(() => { setBtnPos({ x: 0, y: 0 }); setShake(false); }, 500);
   };
 
-  const handleSubmitClick = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    
     if (!email || !password || (mode === "signup" && !name)) {
       setShake(true);
       setTimeout(() => setShake(false), 400);
       return;
     }
+
+    // DODGE: First 2 clicks make it dodge
     if (dodgeCount < 2) {
       setDodgeCount(c => c + 1);
       dodge();
-    } else {
-      onAuth({ name: name || email.split("@")[0], email });
+      return;
+    }
+
+    // After dodging twice, actually submit
+    setLoading(true);
+
+    try {
+      if (mode === "signup") {
+        const { data, error } = await sb.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: { full_name: name },
+          },
+        });
+        if (error) throw error;
+        if (data.user) {
+          onAuth({ name: name, email: email, id: data.user.id });
+        }
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
+        if (error) throw error;
+        if (data.user) {
+          onAuth({ 
+            name: data.user.user_metadata?.full_name || email.split("@")[0],
+            email: email,
+            id: data.user.id
+          });
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const dodgeMsgs = ["Hmm, not yet... 😏", "Almost! Try again 😅", "Okay okay, you got me 😂"];
+  const dodgeMsgs = ["Hmm, not yet... 😏", "Almost! Try again 😅", "Okay okay, you got me 🎉"];
 
   return (
     <motion.div className="fixed inset-0 z-50 flex items-center justify-center px-5" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -478,52 +519,134 @@ const AuthModal = ({ onClose, onAuth }) => {
         <button onClick={onClose} className="absolute top-5 right-5 w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.06)" }}>
           <X size={15} color="rgba(255,255,255,0.5)" />
         </button>
+        
         <h3 className="font-fraunces text-2xl font-bold mb-1" style={{ color: "white" }}>
           {mode === "signup" ? "Create account" : "Welcome back"}
         </h3>
         <p className="font-body text-[13px] mb-7" style={{ color: "rgba(255,255,255,0.35)" }}>
           {dodgeCount === 0 ? (mode === "signup" ? "Join my world" : "Log back in") : dodgeMsgs[dodgeCount - 1]}
         </p>
-        <form onSubmit={handleSubmitClick} className="space-y-3">
+        
+        {error && (
+          <div className="mb-4 p-3 rounded-xl" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)" }}>
+            <p className="font-body text-[13px]" style={{ color: "#ef4444" }}>{error}</p>
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-3">
           {mode === "signup" && (
             <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <User size={15} color="rgba(255,255,255,0.3)" />
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="bg-transparent outline-none w-full font-body text-[13.5px]" style={{ color: "white" }} />
+              <input 
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+                placeholder="Your name" 
+                className="bg-transparent outline-none w-full font-body text-[13.5px]" 
+                style={{ color: "white" }} 
+                required
+              />
             </div>
           )}
+          
           <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <Mail size={15} color="rgba(255,255,255,0.3)" />
-            <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" type="email" className="bg-transparent outline-none w-full font-body text-[13.5px]" style={{ color: "white" }} />
+            <input 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              placeholder="Email address" 
+              type="email" 
+              className="bg-transparent outline-none w-full font-body text-[13.5px]" 
+              style={{ color: "white" }} 
+              required
+            />
           </div>
+          
           <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <Lock size={15} color="rgba(255,255,255,0.3)" />
-            <input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="password" className="bg-transparent outline-none w-full font-body text-[13.5px]" style={{ color: "white" }} />
+            <input 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              placeholder="Password (min 6 characters)" 
+              type="password" 
+              className="bg-transparent outline-none w-full font-body text-[13.5px]" 
+              style={{ color: "white" }} 
+              required
+              minLength={6}
+            />
           </div>
+          
           <div className="relative h-14 mt-2">
             <motion.button
               type="submit"
-              animate={{ x: btnPos.x, y: btnPos.y, rotate: shake ? [0, -4, 4, -4, 4, 0] : 0 }}
-              transition={{ x: { type: "spring", stiffness: 260, damping: 18 }, y: { type: "spring", stiffness: 260, damping: 18 }, rotate: { duration: 0.4 } }}
+              disabled={loading}
+              animate={{ 
+                x: btnPos.x, 
+                y: btnPos.y, 
+                rotate: shake ? [0, -4, 4, -4, 4, 0] : 0 
+              }}
+              transition={{ 
+                x: { type: "spring", stiffness: 260, damping: 18 }, 
+                y: { type: "spring", stiffness: 260, damping: 18 }, 
+                rotate: { duration: 0.4 } 
+              }}
               className="absolute inset-0 w-full rounded-2xl font-body text-[14px] font-semibold"
-              style={{ background: dodgeCount >= 2 ? "linear-gradient(135deg,#059669,#10B981)" : "linear-gradient(135deg,#7C3AED,#2563EB)", color: "white" }}
+              style={{ 
+                background: dodgeCount >= 2 
+                  ? "linear-gradient(135deg,#059669,#10B981)" 
+                  : "linear-gradient(135deg,#7C3AED,#2563EB)", 
+                color: "white",
+                opacity: loading ? 0.7 : 1
+              }}
             >
-              {dodgeCount === 0 && (mode === "signup" ? "Sign up" : "Log in")}
-              {dodgeCount === 1 && "Catch me if you can 😏"}
-              {dodgeCount >= 2 && "Okay fine, come in! 🎉"}
+              {loading ? "Loading..." : 
+                dodgeCount === 0 ? (mode === "signup" ? "Sign up" : "Log in") :
+                dodgeCount === 1 ? "Catch me if you can 😏" :
+                "Okay fine, come in! 🎉"}
             </motion.button>
           </div>
         </form>
+        
         <div className="flex items-center gap-3 my-5">
           <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
           <span className="font-body text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>or</span>
           <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
         </div>
-        <button onClick={() => onAuth({ name: "Google User", email: "you@gmail.com" })} className="w-full py-3.5 rounded-2xl font-body text-[13.5px]" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)" }}>
+        
+        <button 
+          onClick={async () => {
+            try {
+              const { data, error } = await sb.auth.signInWithOAuth({
+                provider: 'google',
+              });
+              if (error) throw error;
+            } catch (err) {
+              setError(err.message);
+            }
+          }} 
+          className="w-full py-3.5 rounded-2xl font-body text-[13.5px] flex items-center justify-center gap-2"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#EA4335" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#4285F4" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
           Continue with Google
         </button>
+        
         <p className="text-center font-body text-[12px] mt-6" style={{ color: "rgba(255,255,255,0.3)" }}>
           {mode === "signup" ? "Already have an account? " : "New here? "}
-          <button type="button" onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setDodgeCount(0); setBtnPos({ x: 0, y: 0 }); }} style={{ color: "#818CF8" }}>
+          <button 
+            type="button" 
+            onClick={() => { 
+              setMode(mode === "signup" ? "login" : "signup"); 
+              setError("");
+              setDodgeCount(0);
+              setBtnPos({ x: 0, y: 0 });
+            }} 
+            style={{ color: "#818CF8" }}
+          >
             {mode === "signup" ? "Log in" : "Sign up"}
           </button>
         </p>
@@ -531,7 +654,6 @@ const AuthModal = ({ onClose, onAuth }) => {
     </motion.div>
   );
 };
-
 /* ---------------------------------------------------------------
    ENGAGEMENT (unchanged)
 --------------------------------------------------------------- */
