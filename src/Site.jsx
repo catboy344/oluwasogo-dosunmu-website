@@ -392,7 +392,7 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
       <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between relative">
 
         {/* LEFT: Logo - Added mr-12 to push it left */}
-        <div className="relative z-20 shrink-0 mr-8">
+        <div className="relative z-20 shrink-0">
           <button onClick={onGoHome} className="font-fraunces font-bold text-[18px] md:text-[20px]" style={{ color: "#FFFFFF" }}>
             Oluwasogo Dosunmu
           </button>
