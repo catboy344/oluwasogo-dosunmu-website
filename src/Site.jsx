@@ -10,11 +10,12 @@ import { createClient } from '@supabase/supabase-js';
 import { useTheme } from './ThemeContext';
 import { getThemeColors } from './themeColors';
 import ThemeToggle from './ThemeToggle';
+import Ads from './Ads';  // 🔥 ADDED ADS IMPORT
 
 // ==================== SUPABASE ====================
 const SUPABASE_URL = "https://mzhccgxxbznvinqyvust.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aGNjZ3h4YnpudmlucXl2dXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzkwMTAsImV4cCI6MjA5NzgxNTAxMH0.z-KNumdmNKaXyYYgWGFo1ZIxNMPc31rNvGqvdIlMbFU";
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+export const sb = createClient(SUPABASE_URL, SUPABASE_ANON);  // 🔥 CHANGED TO EXPORT
 
 // ==================================================
 
@@ -1053,7 +1054,7 @@ const SpaceView = ({ space, user, onBack }) => {
 };
 
 /* ---------------------------------------------------------------
-   HOMEPAGE - THEMED WITH SOCIAL LINKS (TikTok replaces Facebook)
+   HOMEPAGE - THEMED WITH ADS SECTION
 --------------------------------------------------------------- */
 const Homepage = () => {
   const { isDark } = useTheme();
@@ -1083,6 +1084,11 @@ const Homepage = () => {
         </div>
       </div>
 
+      {/* 🔥 ADS SECTION - BETWEEN ABOUT AND FEATURED */}
+      <div className="max-w-6xl mx-auto px-6 md:px-10 pb-12">
+        <Ads position="home" limit={3} />
+      </div>
+
       <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${colors.borderColor}, transparent)` }} />
 
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-16 md:py-20">
@@ -1106,13 +1112,12 @@ const Homepage = () => {
 
       <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${colors.borderColor}, transparent)` }} />
       
-      {/* 🔥 UPDATED FOOTER WITH TIKTOK INSTEAD OF FACEBOOK */}
+      {/* FOOTER WITH SOCIAL LINKS */}
       <footer className="max-w-6xl mx-auto px-6 md:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-5">
         <p className="font-body text-[12px]" style={{ color: colors.textMuted }}>
           © {new Date().getFullYear()} Oluwasogo Dosunmu. All rights reserved.
         </p>
         <div className="flex items-center gap-3">
-          {/* Instagram */}
           <a 
             href="https://www.instagram.com/whispers.with.oluwasogo?igsh=ZnVoNGlyaHh0djA=" 
             target="_blank" 
@@ -1123,8 +1128,6 @@ const Homepage = () => {
           >
             <Instagram size={15} />
           </a>
-          
-          {/* YouTube */}
           <a 
             href="https://youtube.com/@shugzeygold?si=0bsnDVrBbROsPHyL" 
             target="_blank" 
@@ -1135,8 +1138,6 @@ const Homepage = () => {
           >
             <Youtube size={15} />
           </a>
-          
-          {/* TikTok (replaces Facebook) */}
           <a 
             href="https://www.tiktok.com/@whispers.with.oluwasogo?_r=1&_t=ZS-97WEBNcejYN" 
             target="_blank" 
@@ -1155,8 +1156,6 @@ const Homepage = () => {
               <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
             </svg>
           </a>
-          
-          {/* Twitter/X */}
           <a 
             href="https://x.com/sogospeaks" 
             target="_blank" 
@@ -1172,8 +1171,9 @@ const Homepage = () => {
     </div>
   );
 };
+
 /* ---------------------------------------------------------------
-   ROOT - SITE (GUARANTEED AUTO-LOGOUT)
+   ROOT - SITE
 --------------------------------------------------------------- */
 export default function Site() {
   const [view, setView] = useState("home");
@@ -1182,7 +1182,7 @@ export default function Site() {
   const [pendingSpace, setPendingSpace] = useState(null);
   const [isChecking, setIsChecking] = useState(true);
 
-  // 🔥 REAL-TIME AUTH STATE LISTENER
+  // REAL-TIME AUTH STATE LISTENER
   useEffect(() => {
     const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event);
@@ -1211,23 +1211,19 @@ export default function Site() {
     };
   }, []);
 
-  // 🔥 CHECK SESSION ON LOAD - WITH EXPIRY
+  // CHECK SESSION ON LOAD - WITH EXPIRY
   useEffect(() => {
     const checkSession = async () => {
       setIsChecking(true);
       
-      // Check if session exists in localStorage
       const storedUser = localStorage.getItem("user-profile");
       const sessionStart = localStorage.getItem("session-start");
       
-      // 🔥 SESSION EXPIRY: 30 MINUTES
-      const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
+      const SESSION_DURATION = 30 * 60 * 1000;
       const now = Date.now();
       
       if (storedUser && sessionStart) {
         const elapsed = now - parseInt(sessionStart);
-        
-        // If session is older than 30 minutes, force logout
         if (elapsed > SESSION_DURATION) {
           localStorage.removeItem("user-profile");
           localStorage.removeItem("session-start");
@@ -1240,7 +1236,6 @@ export default function Site() {
         }
       }
       
-      // Verify with Supabase
       const { data: { session } } = await sb.auth.getSession();
       
       if (session) {
@@ -1272,19 +1267,17 @@ export default function Site() {
     checkSession();
   }, []);
 
-  // 🔥 CHECK SESSION EVERY 5 SECONDS
+  // CHECK SESSION EVERY 5 SECONDS
   useEffect(() => {
     const interval = setInterval(async () => {
       const { data: { session } } = await sb.auth.getSession();
       
-      // Check localStorage expiry too
       const sessionStart = localStorage.getItem("session-start");
       const SESSION_DURATION = 30 * 60 * 1000;
       
       if (sessionStart) {
         const elapsed = Date.now() - parseInt(sessionStart);
         if (elapsed > SESSION_DURATION) {
-          // Session expired by time
           localStorage.removeItem("user-profile");
           localStorage.removeItem("session-start");
           await sb.auth.signOut();
@@ -1307,10 +1300,9 @@ export default function Site() {
     return () => clearInterval(interval);
   }, [user]);
 
-  // 🔥 DETECT TAB/BROWSER CLOSE - save timestamp to detect on reload
+  // DETECT TAB/BROWSER CLOSE
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // Save a timestamp when user leaves
       localStorage.setItem("last-activity", Date.now().toString());
     };
     
@@ -1321,13 +1313,12 @@ export default function Site() {
     };
   }, []);
 
-  // 🔥 CHECK IF USER RETURNED AFTER LONG ABSENCE
+  // CHECK IF USER RETURNED AFTER LONG ABSENCE
   useEffect(() => {
     const checkReturn = () => {
       const lastActivity = localStorage.getItem("last-activity");
       if (lastActivity) {
         const elapsed = Date.now() - parseInt(lastActivity);
-        // If user was away for more than 5 minutes, check session
         if (elapsed > 5 * 60 * 1000) {
           const checkSession = async () => {
             const { data: { session } } = await sb.auth.getSession();
@@ -1345,7 +1336,6 @@ export default function Site() {
       }
     };
     
-    // Check when page becomes visible again
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         checkReturn();
