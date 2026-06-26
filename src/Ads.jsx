@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, ExternalLink, Maximize2 } from 'lucide-react';
+import { ExternalLink, Maximize2 } from 'lucide-react';
 import { useTheme } from './ThemeContext';
 import { getThemeColors } from './themeColors';
 import { sb } from './Site';
@@ -8,25 +8,20 @@ import { sb } from './Site';
 const Ads = ({ position = "home", limit = 3 }) => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [visibleAds, setVisibleAds] = useState([]);
-  const [selectedAd, setSelectedAd] = useState(null); // For fullscreen view
+  const [selectedAd, setSelectedAd] = useState(null);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
 
-  // Check if URL is a video
   const isVideo = (url) => {
     if (!url) return false;
     const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv'];
     const videoPlatforms = ['youtube.com', 'youtu.be', 'vimeo.com'];
-    
     return videoExtensions.some(ext => url.includes(ext)) ||
            videoPlatforms.some(platform => url.includes(platform));
   };
 
-  // Get embed URL for videos
   const getEmbedUrl = (url) => {
     if (!url) return '';
-    
     if (url.includes('youtube.com/watch?v=')) {
       const videoId = url.split('v=')[1]?.split('&')[0];
       return `https://www.youtube.com/embed/${videoId}`;
@@ -42,7 +37,6 @@ const Ads = ({ position = "home", limit = 3 }) => {
     return url;
   };
 
-  // Fetch ads from Supabase
   useEffect(() => {
     const fetchAds = async () => {
       setLoading(true);
@@ -62,7 +56,6 @@ const Ads = ({ position = "home", limit = 3 }) => {
 
         if (data) {
           setAds(data);
-          setVisibleAds(data.map(ad => ({ ...ad, visible: true })));
         }
       } catch (err) {
         console.error("Failed to load ads:", err);
@@ -74,34 +67,20 @@ const Ads = ({ position = "home", limit = 3 }) => {
     fetchAds();
   }, [position, limit]);
 
-  // 🔥 Handle ad click - opens the ad in a modal/popup
   const handleAdClick = async (ad) => {
     try {
-      // Update click count in Supabase
       await sb
         .from("ads")
         .update({ clicks: ad.clicks + 1 })
         .eq("id", ad.id);
-
-      // Open ad in fullscreen modal
       setSelectedAd(ad);
     } catch (err) {
       console.error("Error recording click:", err);
     }
   };
 
-  // Close fullscreen modal
   const closeFullscreen = () => {
     setSelectedAd(null);
-  };
-
-  // Close/dismiss ad
-  const dismissAd = (adId) => {
-    setVisibleAds(prev => 
-      prev.map(ad => 
-        ad.id === adId ? { ...ad, visible: false } : ad
-      )
-    );
   };
 
   if (loading) {
@@ -114,114 +93,76 @@ const Ads = ({ position = "home", limit = 3 }) => {
 
   if (ads.length === 0) return null;
 
-  const visible = visibleAds.filter(ad => ad.visible);
-  if (visible.length === 0) return null;
-
   return (
     <>
-      <div className="space-y-4">
-        {visible.map((ad, index) => {
+      {/* 🔥 BOX GRID - Like your gallery */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {ads.map((ad, index) => {
           const videoUrl = ad.video_url || ad.link_url;
           const isVideoAd = videoUrl && isVideo(videoUrl);
           const embedUrl = isVideoAd ? getEmbedUrl(videoUrl) : null;
-          const hasLink = ad.link_url || ad.video_url || ad.image_url;
           
           return (
             <motion.div
               key={ad.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="relative overflow-hidden rounded-2xl group"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.08 }}
+              className="group cursor-pointer overflow-hidden rounded-2xl"
               style={{
+                aspectRatio: "3/4",
                 background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
                 border: `1px solid ${colors.borderColor}`,
               }}
+              onClick={() => handleAdClick(ad)}
             >
-              {/* 🔥 ENTIRE CARD IS CLICKABLE */}
-              <div 
-                className="p-4 cursor-pointer"
-                onClick={() => handleAdClick(ad)}
-              >
-                {/* Image Section - shows FULL image */}
-                {ad.image_url && !isVideoAd && (
-                  <div className="w-full rounded-xl overflow-hidden mb-3">
+              <div className="w-full h-full flex flex-col">
+                {/* Image/Video - takes most of the space */}
+                <div className="flex-1 overflow-hidden relative">
+                  {ad.image_url && !isVideoAd && (
                     <img 
                       src={ad.image_url} 
                       alt={ad.title}
-                      className="w-full h-auto max-h-[250px] object-contain bg-black/5"
-                      style={{ background: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                  </div>
-                )}
-
-                {/* Video Section */}
-                {isVideoAd && (
-                  <div className="w-full rounded-xl overflow-hidden mb-3 relative">
-                    {embedUrl && embedUrl.match(/\.(mp4|webm|mov)$/i) ? (
-                      <video
-                        src={embedUrl}
-                        className="w-full aspect-video"
-                        controls
-                        playsInline
-                        poster={ad.image_url || undefined}
-                      />
-                    ) : (
-                      <iframe
-                        src={embedUrl}
-                        className="w-full aspect-video"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        title={ad.title}
-                      />
-                    )}
-                  </div>
-                )}
-
-                {/* Text Content */}
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-body text-[14px] font-semibold" style={{ color: colors.textPrimary }}>
-                      {ad.title}
-                    </h4>
-                    <p className="font-body text-[12px] mt-1" style={{ color: colors.textMuted }}>
-                      {hasLink ? '👆 Tap to view' : 'Sponsored'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {hasLink && (
-                      <Maximize2 size={14} style={{ color: colors.textMuted }} />
-                    )}
-                    <div className="text-xs font-body px-2 py-1 rounded-full" style={{ background: colors.borderColor, color: colors.textMuted }}>
-                      Ad
+                  )}
+                  
+                  {isVideoAd && (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <polygon points="5,3 19,12 5,21" />
+                        </svg>
+                      </div>
+                      <span className="absolute bottom-2 right-2 text-xs px-2 py-1 rounded" style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}>
+                        ▶ Video
+                      </span>
                     </div>
+                  )}
+
+                  {/* Ad badge */}
+                  <div className="absolute top-2 right-2 text-[10px] font-body px-2 py-0.5 rounded-full" style={{ background: 'rgba(0,0,0,0.6)', color: 'rgba(255,255,255,0.7)' }}>
+                    Ad
                   </div>
                 </div>
+
+                {/* Title - at the bottom */}
+                <div className="p-3">
+                  <h4 className="font-body text-[13px] font-semibold truncate" style={{ color: colors.textPrimary }}>
+                    {ad.title}
+                  </h4>
+                  <p className="font-body text-[10px] mt-0.5 flex items-center gap-1" style={{ color: colors.textMuted }}>
+                    <Maximize2 size={12} />
+                    Tap to view
+                  </p>
+                </div>
               </div>
-
-              {/* 🔥 X button - ONLY closes the ad */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dismissAd(ad.id);
-                }}
-                className="absolute top-2 right-2 p-1 rounded-full hover:bg-white/10 transition-colors z-10"
-                style={{ color: colors.textMuted }}
-              >
-                <X size={14} />
-              </button>
-
-              {/* Hover effect */}
-              <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" 
-                style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }} 
-              />
             </motion.div>
           );
         })}
       </div>
 
-      {/* 🔥 FULLSCREEN MODAL - Shows ad in full size */}
+      {/* 🔥 FULLSCREEN MODAL */}
       {selectedAd && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -239,18 +180,17 @@ const Ads = ({ position = "home", limit = 3 }) => {
             style={{ background: isDark ? '#0E1015' : '#ffffff' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
             <button
               onClick={closeFullscreen}
               className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center"
               style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
             >
-              <X size={20} />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
 
-            {/* Full content */}
             <div className="p-6">
-              {/* Image */}
               {selectedAd.image_url && (
                 <div className="w-full rounded-xl overflow-hidden mb-4">
                   <img 
@@ -261,7 +201,6 @@ const Ads = ({ position = "home", limit = 3 }) => {
                 </div>
               )}
 
-              {/* Video */}
               {selectedAd.video_url && isVideo(selectedAd.video_url) && (
                 <div className="w-full rounded-xl overflow-hidden mb-4">
                   {selectedAd.video_url.match(/\.(mp4|webm|mov)$/i) ? (
@@ -285,12 +224,10 @@ const Ads = ({ position = "home", limit = 3 }) => {
                 </div>
               )}
 
-              {/* Title and description */}
               <h2 className="font-fraunces text-2xl font-bold" style={{ color: colors.textPrimary }}>
                 {selectedAd.title}
               </h2>
               
-              {/* Link button */}
               {selectedAd.link_url && (
                 <a
                   href={selectedAd.link_url}
