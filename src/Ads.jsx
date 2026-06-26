@@ -12,16 +12,14 @@ const Ads = ({ position = "home", limit = 3 }) => {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
 
-  // Check if URL is a video
   const isVideo = (url) => {
     if (!url) return false;
-    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv'];
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.3gp'];
     const videoPlatforms = ['youtube.com', 'youtu.be', 'vimeo.com'];
-    return videoExtensions.some(ext => url.includes(ext)) ||
+    return videoExtensions.some(ext => url.toLowerCase().includes(ext)) ||
            videoPlatforms.some(platform => url.includes(platform));
   };
 
-  // Get embed URL for videos
   const getEmbedUrl = (url) => {
     if (!url) return '';
     if (url.includes('youtube.com/watch?v=')) {
@@ -97,13 +95,12 @@ const Ads = ({ position = "home", limit = 3 }) => {
 
   return (
     <>
-      {/* Ads Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {ads.map((ad, index) => {
-          const videoUrl = ad.video_url || ad.link_url;
-          const isVideoAd = videoUrl && isVideo(videoUrl);
-          const embedUrl = isVideoAd ? getEmbedUrl(videoUrl) : null;
-          const isVideoFile = embedUrl && embedUrl.match(/\.(mp4|webm|mov)$/i);
+          // 🔥 PRIORITIZE VIDEO OVER IMAGE
+          const hasVideo = ad.video_url && isVideo(ad.video_url);
+          const videoUrl = hasVideo ? ad.video_url : (ad.link_url && isVideo(ad.link_url) ? ad.link_url : null);
+          const isVideoAd = !!videoUrl;
           
           return (
             <motion.div
@@ -120,13 +117,13 @@ const Ads = ({ position = "home", limit = 3 }) => {
               onClick={() => handleAdClick(ad)}
             >
               <div className="w-full h-full flex flex-col">
-                {/* Video or Image */}
                 <div className="flex-1 overflow-hidden relative">
-                  {isVideoAd && (
+                  {/* 🔥 VIDEO - PRIORITIZED */}
+                  {isVideoAd && videoUrl && (
                     <div className="w-full h-full relative">
-                      {isVideoFile ? (
+                      {videoUrl.match(/\.(mp4|webm|mov|avi|mkv)$/i) ? (
                         <video
-                          src={embedUrl}
+                          src={videoUrl}
                           className="w-full h-full object-cover"
                           muted
                           playsInline
@@ -141,13 +138,13 @@ const Ads = ({ position = "home", limit = 3 }) => {
                               });
                               setTimeout(() => {
                                 try { el.play(); } catch {}
-                              }, 100);
+                              }, 500);
                             }
                           }}
                         />
                       ) : (
                         <iframe
-                          src={embedUrl + (embedUrl.includes('youtube') ? '?autoplay=1&mute=1&loop=1&playlist=' + embedUrl.split('v=')[1]?.split('&')[0] : '')}
+                          src={getEmbedUrl(videoUrl) + (videoUrl.includes('youtube') ? '?autoplay=1&mute=1&loop=1' : '')}
                           className="w-full h-full"
                           frameBorder="0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -165,7 +162,8 @@ const Ads = ({ position = "home", limit = 3 }) => {
                     </div>
                   )}
 
-                  {ad.image_url && !isVideoAd && (
+                  {/* 🔥 IMAGE - ONLY IF NO VIDEO */}
+                  {!isVideoAd && ad.image_url && (
                     <img 
                       src={ad.image_url} 
                       alt={ad.title}
@@ -177,9 +175,15 @@ const Ads = ({ position = "home", limit = 3 }) => {
                   <div className="absolute top-2 right-2 text-[10px] font-body px-2 py-0.5 rounded-full" style={{ background: 'rgba(0,0,0,0.6)', color: 'rgba(255,255,255,0.7)' }}>
                     Ad
                   </div>
+                  
+                  {/* 🔥 Video indicator */}
+                  {isVideoAd && (
+                    <div className="absolute bottom-2 left-2 text-[8px] font-body px-2 py-0.5 rounded" style={{ background: 'rgba(255,0,0,0.7)', color: 'white' }}>
+                      ▶ VIDEO
+                    </div>
+                  )}
                 </div>
 
-                {/* Title */}
                 <div className="p-3">
                   <h4 className="font-body text-[13px] font-semibold truncate" style={{ color: colors.textPrimary }}>
                     {ad.title}
@@ -222,7 +226,7 @@ const Ads = ({ position = "home", limit = 3 }) => {
             </button>
 
             <div className="p-6">
-              {/* Video in fullscreen */}
+              {/* 🔥 VIDEO IN FULLSCREEN */}
               {selectedAd.video_url && isVideo(selectedAd.video_url) && (
                 <div className="w-full rounded-xl overflow-hidden mb-4">
                   {selectedAd.video_url.match(/\.(mp4|webm|mov)$/i) ? (
@@ -246,7 +250,7 @@ const Ads = ({ position = "home", limit = 3 }) => {
                 </div>
               )}
 
-              {selectedAd.image_url && !isVideo(selectedAd.video_url) && (
+              {!selectedAd.video_url && selectedAd.image_url && (
                 <div className="w-full rounded-xl overflow-hidden mb-4">
                   <img 
                     src={selectedAd.image_url} 
