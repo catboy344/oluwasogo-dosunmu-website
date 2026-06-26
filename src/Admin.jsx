@@ -81,23 +81,7 @@ const SPACES = [
   { id: "holyghost", title: "The Holy Ghost in Action", Icon: Hand, type: "video", accent: C.emerald },
 ];
 
-const DEFAULT_CONTENT = [
-  { id: "whispers-1", spaceId: "whispers", title: "On Starting Over (Again)", meta: "24 min · Episode 01" },
-  { id: "whispers-2", spaceId: "whispers", title: "The Weight We Don't Talk About", meta: "31 min · Episode 02" },
-  { id: "speaks-1", spaceId: "speaks", title: "Sogo Speaks — Vol. 1", meta: "Video · 18 min" },
-  { id: "speaks-2", spaceId: "speaks", title: "Sogo Speaks — Vol. 2", meta: "Video · 22 min" },
-  { id: "healingpen-1", spaceId: "healingpen", title: "Letters I Never Sent", meta: "142 pages", price: "₦3,500" },
-  { id: "healingpen-2", spaceId: "healingpen", title: "Still Standing", meta: "210 pages", price: "₦4,200" },
-  { id: "poetry-1", spaceId: "poetry", title: "Unfinished Prayer", meta: "Spoken · 3 min" },
-  { id: "poetry-2", spaceId: "poetry", title: "Acoustic: What the River Knows", meta: "Acoustic · 4 min" },
-  { id: "preaches-1", spaceId: "preaches", title: "Sogo Preaches — Vol. 1", meta: "Video · 18 min" },
-  { id: "preaches-2", spaceId: "preaches", title: "Sogo Preaches — Vol. 2", meta: "Video · 22 min" },
-  { id: "presence-1", spaceId: "presence", title: "In His Presence — Vol. 1", meta: "Video · 18 min" },
-  { id: "presence-2", spaceId: "presence", title: "In His Presence — Vol. 2", meta: "Video · 22 min" },
-  { id: "holyghost-1", spaceId: "holyghost", title: "The Holy Ghost in Action — Vol. 1", meta: "Video · 18 min" },
-  { id: "holyghost-2", spaceId: "holyghost", title: "The Holy Ghost in Action — Vol. 2", meta: "Video · 22 min" },
-];
-
+const DEFAULT_CONTENT = [];
 const DEMO_PAYMENTS = [
   { id: 1, buyer: "Tobi A.", item: "Letters I Never Sent (PDF)", amount: "₦3,500", date: "Jun 18, 2026", status: "paid" },
   { id: 2, buyer: "Grace O.", item: "Still Standing (PDF)", amount: "₦4,200", date: "Jun 15, 2026", status: "paid" },
