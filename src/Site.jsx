@@ -48,24 +48,7 @@ const SPACES = [
 ];
 
 const sampleContent = (space) => {
-  switch (space.type) {
-    case "audio": return [
-      { id: `${space.id}-1`, title: "On Starting Over (Again)", meta: "24 min · Episode 01" },
-      { id: `${space.id}-2`, title: "The Weight We Don't Talk About", meta: "31 min · Episode 02" },
-    ];
-    case "book": return [
-      { id: `${space.id}-1`, title: "Letters I Never Sent", meta: "Poetry & Prose · 142 pages", price: "₦3,500", blurb: "A quiet collection on grief, faith, and the words we keep folded in our pockets." },
-      { id: `${space.id}-2`, title: "Still Standing", meta: "Memoir · 210 pages", price: "₦4,200", blurb: "A personal account of holding onto purpose when everything else gave way." },
-    ];
-    case "poetry": return [
-      { id: `${space.id}-1`, title: "Unfinished Prayer", meta: "Spoken · 3 min" },
-      { id: `${space.id}-2`, title: "Acoustic: What the River Knows", meta: "Acoustic · 4 min" },
-    ];
-    default: return [
-      { id: `${space.id}-1`, title: `${space.title} — Vol. 1`, meta: "Video · 18 min" },
-      { id: `${space.id}-2`, title: `${space.title} — Vol. 2`, meta: "Video · 22 min" },
-    ];
-  }
+  return [];
 };
 
 const AD_SLOTS = ["New Release", "Podcast Premiere", "Upcoming Event", "Merch Drop", "Featured Sermon", "Book Tour"];
