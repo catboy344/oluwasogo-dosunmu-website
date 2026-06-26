@@ -613,12 +613,13 @@ const Audience = () => (
 );
 
 /* ===============================================================
-   🔥 ADS MANAGEMENT WITH VIDEO UPLOAD
+   🔥 ADS MANAGEMENT WITH IMAGE UPLOAD
    =============================================================== */
 const AdsManagement = () => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
   const [formData, setFormData] = useState({
@@ -651,6 +652,24 @@ const AdsManagement = () => {
   useEffect(() => {
     fetchAds();
   }, []);
+
+  // 🔥 NEW: Handle image upload (just like Gallery Photos)
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploadingImage(true);
+    try {
+      const { url } = await uploadToCloudinary(file, "ads_images");
+      setFormData({...formData, image_url: url});
+      alert("✅ Image uploaded successfully!");
+    } catch (err) {
+      alert("❌ Upload failed: " + err.message);
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
+    }
+  };
 
   // Handle video upload
   const handleVideoUpload = async (e) => {
@@ -737,7 +756,7 @@ const AdsManagement = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-fraunces text-2xl font-bold" style={{ color: C.white }}>📢 Ads Management</h2>
-          <p className="font-body text-[13px] mt-1" style={{ color: C.faint }}>Create and manage ads. Supports images, videos (MP4, WebM), and YouTube/Vimeo links.</p>
+          <p className="font-body text-[13px] mt-1" style={{ color: C.faint }}>Create and manage ads. Upload images and videos directly from your device!</p>
         </div>
         <button
           onClick={() => {
@@ -775,18 +794,27 @@ const AdsManagement = () => {
                 />
               </div>
               <div>
-                <label className="block font-body text-[12px] mb-1" style={{ color: C.faint }}>Image URL (Thumbnail)</label>
-                <input
-                  type="url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                  className="w-full px-4 py-2.5 rounded-xl font-body text-[13px] outline-none"
-                  style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.white }}
-                  placeholder="https://example.com/image.jpg"
-                />
+                <label className="block font-body text-[12px] mb-1" style={{ color: C.faint }}>Upload Image (JPG, PNG, WEBP)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="flex-1 px-4 py-2.5 rounded-xl font-body text-[13px] outline-none cursor-pointer"
+                    style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.white }}
+                  />
+                  {uploadingImage && <span className="font-body text-[12px]" style={{ color: C.good }}>⏳ Uploading...</span>}
+                </div>
+                {formData.image_url && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <img src={formData.image_url} alt="Uploaded" className="w-12 h-12 rounded-lg object-cover" />
+                    <p className="font-body text-[11px] truncate" style={{ color: C.good }}>✅ Image uploaded!</p>
+                  </div>
+                )}
               </div>
               <div>
-                <label className="block font-body text-[12px] mb-1" style={{ color: C.faint }}>Link URL (YouTube/Vimeo)</label>
+                <label className="block font-body text-[12px] mb-1" style={{ color: C.faint }}>Link URL (YouTube/Vimeo or Website)</label>
                 <input
                   type="url"
                   value={formData.link_url}
@@ -795,7 +823,6 @@ const AdsManagement = () => {
                   style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.white }}
                   placeholder="https://youtube.com/watch?v=xxxxx"
                 />
-                <p className="font-body text-[10px] mt-1" style={{ color: C.faint }}>OR upload a video below</p>
               </div>
               <div>
                 <label className="block font-body text-[12px] mb-1" style={{ color: C.faint }}>OR Upload Video (MP4, WebM)</label>
@@ -874,8 +901,8 @@ const AdsManagement = () => {
                 </h4>
                 <p className="font-body text-[11.5px]" style={{ color: C.faint }}>
                   {ad.position} • {ad.clicks || 0} clicks • 
-                  {ad.video_url ? ' 🎬 Video Uploaded' : 
-                   ad.link_url && (ad.link_url.includes('youtube') || ad.link_url.includes('vimeo')) ? ' 🎬 Video' : ' 🖼️ Image'}
+                  {ad.video_url ? ' 🎬 Video' : 
+                   ad.image_url ? ' 🖼️ Image' : ' 📝 Text'}
                   • {ad.active ? '✅ Active' : '❌ Inactive'}
                 </p>
                 {ad.video_url && (
