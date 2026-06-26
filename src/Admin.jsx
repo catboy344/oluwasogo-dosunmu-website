@@ -82,19 +82,8 @@ const SPACES = [
 ];
 
 const DEFAULT_CONTENT = [];
-const DEMO_PAYMENTS = [
-  { id: 1, buyer: "Tobi A.", item: "Letters I Never Sent (PDF)", amount: "₦3,500", date: "Jun 18, 2026", status: "paid" },
-  { id: 2, buyer: "Grace O.", item: "Still Standing (PDF)", amount: "₦4,200", date: "Jun 15, 2026", status: "paid" },
-  { id: 3, buyer: "David E.", item: "Letters I Never Sent (PDF)", amount: "₦3,500", date: "Jun 10, 2026", status: "pending" },
-];
-
-const DEMO_AUDIENCE = [
-  { name: "Tobi A.", email: "tobi***@gmail.com", joined: "Jun 18, 2026" },
-  { name: "Grace O.", email: "grace***@gmail.com", joined: "Jun 15, 2026" },
-  { name: "David E.", email: "david***@gmail.com", joined: "Jun 10, 2026" },
-  { name: "Amaka N.", email: "amaka***@gmail.com", joined: "Jun 3, 2026" },
-];
-
+const DEMO_PAYMENTS = [];
+const DEMO_AUDIENCE = [];
 /* ---------------------------------------------------------------
    STORAGE
 --------------------------------------------------------------- */
