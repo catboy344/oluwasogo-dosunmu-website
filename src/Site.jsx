@@ -369,7 +369,7 @@ const BurstNav = ({ onSelectSpace }) => {
 };
 
 /* ---------------------------------------------------------------
-   NAV - THEMED (Theme Toggle in front of Logo - FIXED SPACING)
+   NAV - THEMED (Theme Toggle on LEFT - FIXED)
 --------------------------------------------------------------- */
 const Nav = ({ onSelectSpace, onGoHome }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -396,8 +396,7 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
       <div className="max-w-6xl mx-auto px-6 md:px-10 h-[68px] flex items-center justify-between relative">
 
         {/* LEFT: Theme Toggle + Logo */}
-        <div className="relative z-20 shrink-0 flex items-center gap-1 mr-8">
-          {/* Theme Toggle - NOW IN FRONT OF LOGO */}
+        <div className="relative z-20 shrink-0 flex items-center gap-2">
           <ThemeToggle />
           <button 
             onClick={onGoHome} 
@@ -408,8 +407,8 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
           </button>
         </div>
 
-        {/* CENTER: Scrolling tiles */}
-        <div className="absolute left-1/2 top-0 bottom-0 z-10 flex items-center overflow-hidden" style={{ transform: 'translateX(-38%)', maxWidth: '48%' }}>
+        {/* CENTER: Scrolling tiles - PUSHED MORE TO THE RIGHT */}
+        <div className="absolute left-1/2 top-0 bottom-0 z-10 flex items-center overflow-hidden" style={{ transform: 'translateX(-45%)', maxWidth: '40%' }}>
           <motion.div
             style={{ display: "flex", gap: 6 }}
             animate={{ x: ["0%", "-50%"] }}
@@ -418,9 +417,9 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
             {[...TILES_ROW1, ...TILES_ROW1].map((label, i) => {
               const c = TILE_COLORS[i % TILE_COLORS.length];
               return (
-                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "0 10px", height: 28, borderRadius: 7, background: c.bg, border: `1px solid ${c.border}`, whiteSpace: "nowrap", flexShrink: 0 }}>
-                  <div style={{ width: 4, height: 4, borderRadius: "50%", background: c.dot, flexShrink: 0 }} />
-                  <span style={{ fontFamily: "'Outfit',sans-serif", fontSize: 10.5, fontWeight: 500, color: c.color }}>{label}</span>
+                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "0 8px", height: 24, borderRadius: 6, background: c.bg, border: `1px solid ${c.border}`, whiteSpace: "nowrap", flexShrink: 0 }}>
+                  <div style={{ width: 3, height: 3, borderRadius: "50%", background: c.dot, flexShrink: 0 }} />
+                  <span style={{ fontFamily: "'Outfit',sans-serif", fontSize: 9, fontWeight: 500, color: c.color }}>{label}</span>
                 </div>
               );
             })}
@@ -428,7 +427,7 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
         </div>
 
         {/* RIGHT: My World */}
-        <div className="relative z-50 shrink-0 flex items-center gap-3 ml-6">
+        <div className="relative z-50 shrink-0">
           <BurstNav onSelectSpace={onSelectSpace} />
         </div>
 
