@@ -10,12 +10,12 @@ import { createClient } from '@supabase/supabase-js';
 import { useTheme } from './ThemeContext';
 import { getThemeColors } from './themeColors';
 import ThemeToggle from './ThemeToggle';
-import Ads from './Ads';  // 🔥 ADDED ADS IMPORT
+import Ads from './Ads';
 
 // ==================== SUPABASE ====================
 const SUPABASE_URL = "https://mzhccgxxbznvinqyvust.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16aGNjZ3h4YnpudmlucXl2dXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzkwMTAsImV4cCI6MjA5NzgxNTAxMH0.z-KNumdmNKaXyYYgWGFo1ZIxNMPc31rNvGqvdIlMbFU";
-export const sb = createClient(SUPABASE_URL, SUPABASE_ANON);  // 🔥 CHANGED TO EXPORT
+export const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
 // ==================================================
 
@@ -367,6 +367,7 @@ const BurstNav = ({ onSelectSpace }) => {
     </div>
   );
 };
+
 /* ---------------------------------------------------------------
    NAV - THEMED (Theme Toggle in front of Logo)
 --------------------------------------------------------------- */
@@ -396,7 +397,6 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
 
         {/* LEFT: Theme Toggle + Logo */}
         <div className="relative z-20 shrink-0 flex items-center gap-3 mr-12">
-          {/* Theme Toggle - NOW IN FRONT OF LOGO */}
           <ThemeToggle />
           <button 
             onClick={onGoHome} 
@@ -435,10 +435,11 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
     </motion.header>
   );
 };
+
 /* ---------------------------------------------------------------
    AUTH MODAL - GOOGLE ONLY (NO EMAIL SIGNUP)
 --------------------------------------------------------------- */
-const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
+const AuthModal = ({ onClose, onAuth, defaultMode = "signup", pendingSpace = null }) => {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const [loading, setLoading] = useState(false);
@@ -461,7 +462,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
     "rgba(236,72,153,0.15)", "rgba(52,211,153,0.15)", "rgba(251,146,60,0.15)"
   ];
 
-  // 🔥 Google-only login
+  // Google-only login
   const handleGoogleLogin = async () => {
     setError("");
     setLoading(true);
@@ -473,7 +474,6 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
         },
       });
       if (error) throw error;
-      // User will be redirected to Google, then back
     } catch (err) {
       setError(err.message || "Google login failed. Please try again.");
       setLoading(false);
@@ -651,7 +651,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
           </div>
         )}
         
-        {/* Google Button - LARGE & CLEAR */}
+        {/* Google Button */}
         <button 
           onClick={handleGoogleLogin}
           disabled={loading}
@@ -679,6 +679,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
     </motion.div>
   );
 };
+
 /* ---------------------------------------------------------------
    ENGAGEMENT
 --------------------------------------------------------------- */
@@ -828,7 +829,7 @@ const Homepage = () => {
       {/* Divider */}
       <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${colors.borderColor}, transparent)` }} />
 
-      {/* 🔥 ADS SECTION - MORE SPACE ABOVE */}
+      {/* ADS SECTION */}
       <div className="max-w-6xl mx-auto px-6 md:px-10 pt-16 pb-8">
         <Ads position="home" limit={7} />
       </div>
@@ -1096,13 +1097,26 @@ export default function Site() {
     };
   }, []);
 
-  // 🔥 GOOGLE WELCOME EMAIL - ADDED HERE
+  // 🔥 HANDLE GOOGLE LOGIN REDIRECT TO SPACE
+  useEffect(() => {
+    const handleGoogleRedirect = async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      
+      if (session && pendingSpace) {
+        setView(pendingSpace);
+        setPendingSpace(null);
+        window.scrollTo(0, 0);
+      }
+    };
+    
+    handleGoogleRedirect();
+  }, [pendingSpace]);
+
+  // 🔥 GOOGLE WELCOME EMAIL
   useEffect(() => {
     const sendWelcomeEmail = async () => {
-      // Only run if user is logged in
       if (!user) return;
       
-      // Check if welcome email already sent
       const welcomeSent = localStorage.getItem(`welcome_${user.id}`);
       if (welcomeSent) return;
       
@@ -1110,7 +1124,7 @@ export default function Site() {
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-           'Authorization': 'Bearer re_VmZTuJvF_23mUrh32qHtLvBNeasgcMR8q',
+            'Authorization': 'Bearer re_VmZTuJvF_23mUrh32qHtLvBNeasgcMR8q',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -1274,6 +1288,7 @@ export default function Site() {
             onClose={() => setAuthOpen(false)} 
             onAuth={handleAuth} 
             defaultMode={pendingSpace ? "login" : "signup"}
+            pendingSpace={pendingSpace}
           />
         )}
       </AnimatePresence>
