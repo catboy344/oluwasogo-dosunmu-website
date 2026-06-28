@@ -436,7 +436,7 @@ const Nav = ({ onSelectSpace, onGoHome }) => {
   );
 };
 /* ---------------------------------------------------------------
-   AUTH MODAL - THEMED WITH BOLD ANIMATED BACKGROUND (DODGE REMOVED)
+   AUTH MODAL - THEMED WITH BOLD ANIMATED BACKGROUND (FULLY FIXED)
 --------------------------------------------------------------- */
 const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
   const { isDark } = useTheme();
@@ -489,6 +489,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
         });
         
         if (error) {
+          console.error("Signup error:", error);
           if (error.message.includes("User already registered") || 
               error.message.includes("already registered")) {
             setError("This email is already registered. Please log in instead.");
@@ -497,8 +498,9 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
               setError("");
             }, 3000);
           } else {
-            throw error;
+            setError(error.message || "Signup failed. Please try again.");
           }
+          setLoading(false);
           return;
         }
         
@@ -521,25 +523,29 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
           return;
         }
       } else {
+        // LOGIN
         const { data, error } = await sb.auth.signInWithPassword({
           email: email,
           password: password,
         });
         
         if (error) {
+          console.error("Login error:", error);
           if (error.message.includes("Email not confirmed")) {
             setError("📧 Please confirm your email first. Check your inbox or spam folder!");
           } else if (error.message.includes("Invalid login credentials")) {
             setError("❌ Wrong email or password. Please try again.");
           } else {
-            throw error;
+            setError(error.message || "Login failed. Please try again.");
           }
+          setLoading(false);
           return;
         }
         
         if (data.user) {
           if (data.user.confirmed_at === null) {
             setError("📧 Please confirm your email first. Check your inbox or spam folder!");
+            setLoading(false);
             return;
           }
           
@@ -551,7 +557,8 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
         }
       }
     } catch (err) {
-      setError(err.message);
+      console.error("Auth error:", err);
+      setError(err.message || "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -565,7 +572,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
       });
       if (error) throw error;
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Google login failed. Please try again.");
     }
   };
 
@@ -580,7 +587,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
       animate={{ opacity: 1 }} 
       exit={{ opacity: 0 }}
     >
-      {/* Animated tiles background */}
+      {/* 🎨 BOLD ANIMATED TILES BACKGROUND */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {animatedTiles.map((tile, i) => {
           const row = Math.floor(i / 6);
@@ -636,7 +643,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
           );
         })}
         
-        {/* Glowing particles */}
+        {/* 🌟 GLOWING PARTICLES */}
         {[...Array(20)].map((_, i) => {
           const size = 100 + Math.random() * 200;
           const colors = isDark 
@@ -670,7 +677,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
           );
         })}
         
-        {/* Floating dots */}
+        {/* ✨ FLOATING DOTS */}
         {[...Array(30)].map((_, i) => (
           <motion.div
             key={`dot-${i}`}
@@ -746,7 +753,7 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup" }) => {
                 ? "#10B981" 
                 : "#ef4444" 
             }}>
-              {error}
+              {error || "Something went wrong"}
             </p>
             {error.includes("already registered") && (
               <button 
