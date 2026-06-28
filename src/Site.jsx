@@ -732,7 +732,7 @@ const Engagement = ({ contentId, user, accent }) => {
 };
 
 /* ---------------------------------------------------------------
-   SPACE VIEW - FETCHES FROM SUPABASE
+   SPACE VIEW - FETCHES FROM SUPABASE (FIXED)
 --------------------------------------------------------------- */
 const SpaceView = ({ space, user, onBack }) => {
   const { isDark } = useTheme();
@@ -816,37 +816,40 @@ const SpaceView = ({ space, user, onBack }) => {
             </p>
           </div>
         ) : (
-          content.map((item, i) => (
-            <motion.div key={item.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="p-6 rounded-3xl" style={{ background: colors.backgroundCard, border: `1px solid ${colors.borderColor}` }}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="font-fraunces text-xl font-semibold" style={{ color: colors.textPrimary }}>{item.title}</h3>
-                  <p className="font-body text-[12px] mt-1" style={{ color: colors.textMuted }}>{item.meta || "New content"}</p>
-                  {item.video_url && (
-                    <div className="mt-3 rounded-xl overflow-hidden">
-                      <video src={item.video_url} className="w-full max-h-[300px]" controls playsInline />
-                    </div>
-                  )}
-                  {item.image_url && !item.video_url && (
-                    <img src={item.image_url} alt={item.title} className="mt-3 rounded-xl w-full max-h-[300px] object-cover" />
-                  )}
-                </div>
-                <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ background: `${space.accent}22` }}>
-                  <Play size={14} color={space.accent} fill={space.accent} />
-                </div>
-              </div>
-              {space.type === "book" && item.blurb && (
-                <div className="mt-4">
-                  <p className="font-body text-[13.5px] leading-relaxed" style={{ color: colors.textSecondary }}>{item.blurb}</p>
-                  <div className="flex flex-wrap gap-3 mt-4">
-                    <button className="px-5 py-2.5 rounded-xl font-body text-[13px] font-semibold" style={{ background: space.accent, color: "#07080C" }}>Read PDF · {item.price || "Free"}</button>
-                    <button className="px-5 py-2.5 rounded-xl font-body text-[13px]" style={{ border: `1px solid ${colors.borderColor}`, color: colors.textSecondary }}>Buy hardcover</button>
+          content.map((item, i) => {
+            const IconComponent = space.Icon || FolderOpen;
+            return (
+              <motion.div key={item.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="p-6 rounded-3xl" style={{ background: colors.backgroundCard, border: `1px solid ${colors.borderColor}` }}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-fraunces text-xl font-semibold" style={{ color: colors.textPrimary }}>{item.title}</h3>
+                    <p className="font-body text-[12px] mt-1" style={{ color: colors.textMuted }}>{item.meta || "New content"}</p>
+                    {item.video_url && (
+                      <div className="mt-3 rounded-xl overflow-hidden">
+                        <video src={item.video_url} className="w-full max-h-[300px]" controls playsInline />
+                      </div>
+                    )}
+                    {item.image_url && !item.video_url && (
+                      <img src={item.image_url} alt={item.title} className="mt-3 rounded-xl w-full max-h-[300px] object-cover" />
+                    )}
+                  </div>
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ background: `${space.accent}22` }}>
+                    <IconComponent size={14} color={space.accent} fill={space.accent} />
                   </div>
                 </div>
-              )}
-              <Engagement contentId={item.id} user={user} accent={space.accent} />
-            </motion.div>
-          ))
+                {space.type === "book" && item.blurb && (
+                  <div className="mt-4">
+                    <p className="font-body text-[13.5px] leading-relaxed" style={{ color: colors.textSecondary }}>{item.blurb}</p>
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      <button className="px-5 py-2.5 rounded-xl font-body text-[13px] font-semibold" style={{ background: space.accent, color: "#07080C" }}>Read PDF · {item.price || "Free"}</button>
+                      <button className="px-5 py-2.5 rounded-xl font-body text-[13px]" style={{ border: `1px solid ${colors.borderColor}`, color: colors.textSecondary }}>Buy hardcover</button>
+                    </div>
+                  </div>
+                )}
+                <Engagement contentId={item.id} user={user} accent={space.accent} />
+              </motion.div>
+            );
+          })
         )}
       </div>
     </div>
