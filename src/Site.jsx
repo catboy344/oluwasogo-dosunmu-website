@@ -4,7 +4,7 @@ import {
   ChevronDown, Mic, Video, BookOpen, PenTool, Church, Sparkles, Hand,
   Heart, MessageCircle, X, Instagram, Youtube, Facebook, Twitter, Send,
   Play, Mail, Lock, User, LogOut, ArrowLeft, ChevronLeft, ChevronRight,
-  Quote, FileText  
+  Quote, FileText  // 🔥 ADD THIS
 } from "lucide-react";
 import { createClient } from '@supabase/supabase-js';
 import { useTheme } from './ThemeContext';
@@ -732,7 +732,7 @@ const Engagement = ({ contentId, user, accent }) => {
 };
 
 /* ---------------------------------------------------------------
-   SPACE VIEW - FETCHES FROM SUPABASE (WITH PDF VIEWER + IMAGE CLICK)
+   SPACE VIEW - FETCHES FROM SUPABASE (WITH GOOGLE PDF VIEWER)
 --------------------------------------------------------------- */
 const SpaceView = ({ space, user, onBack }) => {
   const { isDark } = useTheme();
@@ -777,7 +777,7 @@ const SpaceView = ({ space, user, onBack }) => {
     setSelectedImage(null);
   };
 
-  // Open PDF in embedded viewer
+  // Open PDF in Google PDF Viewer
   const openPDF = (fileUrl) => {
     setSelectedPDF(fileUrl);
   };
@@ -852,7 +852,7 @@ const SpaceView = ({ space, user, onBack }) => {
                         </div>
                       )}
 
-                      {/* 🔥 Image - CLICK TO EXPAND */}
+                      {/* Image - CLICK TO EXPAND */}
                       {item.image_url && !item.video_url && (
                         <div 
                           className="mt-3 rounded-xl overflow-hidden cursor-pointer"
@@ -874,7 +874,7 @@ const SpaceView = ({ space, user, onBack }) => {
                     </div>
                   </div>
 
-                  {/* 🔥 Book Section with PDF Online Viewer */}
+                  {/* Book Section with Google PDF Viewer */}
                   {space.type === "book" && item.blurb && (
                     <div className="mt-4">
                       <p className="font-body text-[13.5px] leading-relaxed" style={{ color: colors.textSecondary }}>{item.blurb}</p>
@@ -945,7 +945,7 @@ const SpaceView = ({ space, user, onBack }) => {
         </motion.div>
       )}
 
-      {/* 🔥 PDF VIEWER MODAL - EMBEDDED ONLINE READER */}
+      {/* 🔥 PDF VIEWER MODAL - Google PDF Viewer */}
       {selectedPDF && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -960,22 +960,27 @@ const SpaceView = ({ space, user, onBack }) => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             className="relative w-full max-w-4xl h-[90vh] rounded-2xl overflow-hidden"
-            style={{ background: '#ffffff' }}
+            style={{ background: '#f5f5f5' }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={closePDF}
               className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
+              style={{ background: 'rgba(0,0,0,0.7)', color: 'white', backdropFilter: 'blur(10px)' }}
             >
               <X size={20} />
             </button>
             
-            {/* 🔥 PDF EMBED - Read directly in browser */}
+            {/* Loading indicator */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-8 h-8 rounded-full animate-spin" style={{ border: `2px solid #e5e5e5`, borderTopColor: '#7C3AED' }} />
+            </div>
+            
+            {/* 🔥 Google PDF Viewer */}
             <iframe
-              src={`${selectedPDF}#toolbar=1&navpanes=1&scrollbar=1`}
-              className="w-full h-full"
-              style={{ border: 'none' }}
+              src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedPDF)}&embedded=true`}
+              className="w-full h-full relative z-10"
+              style={{ border: 'none', background: 'white' }}
               title="PDF Reader"
             />
           </motion.div>
