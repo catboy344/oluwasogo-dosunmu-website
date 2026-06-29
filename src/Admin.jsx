@@ -394,7 +394,7 @@ const Photos = () => {
   );
 };
 /* ---------------------------------------------------------------
-   UPLOAD CONTENT - WITH GOOGLE DRIVE + CLOUDINARY UPLOAD FIXED
+   UPLOAD CONTENT - WITH AUDIO & VIDEO FILE UPLOAD
 --------------------------------------------------------------- */
 const UploadContent = ({ onUpload }) => {
   const [spaceId, setSpaceId] = useState(SPACES[0].id);
@@ -413,7 +413,7 @@ const UploadContent = ({ onUpload }) => {
   const [driveLink, setDriveLink] = useState("");
   const space = SPACES.find(s => s.id === spaceId);
 
-  // 🔥 FIXED: Handle Google Drive upload
+  // 🔥 Handle Google Drive upload
   const handleDriveUpload = () => {
     if (!driveLink.trim()) {
       setError("Please paste a Google Drive link");
@@ -421,8 +421,6 @@ const UploadContent = ({ onUpload }) => {
     }
     
     let directLink = driveLink.trim();
-    
-    // Extract file ID from Google Drive link
     const match = driveLink.match(/\/d\/([^\/]+)/);
     if (match) {
       const fileId = match[1];
@@ -433,51 +431,72 @@ const UploadContent = ({ onUpload }) => {
     }
     
     setFileUrl(directLink);
-    setFileName("Google Drive PDF");
+    setFileName("Google Drive File");
     setError("");
-    alert("✅ Google Drive PDF linked successfully!");
+    alert("✅ Google Drive file linked successfully!");
   };
 
-// 🔥 FIXED: Handle Cloudinary file upload for PDFs
-const handleFileUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  setFileName(file.name);
-  
-  try {
-    const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+  // 🔥 Handle file upload (AUDIO, VIDEO, PDF, IMAGES)
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFileName(file.name);
     
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY_PRESET);
-    formData.append("folder", "content");
-    
-    let uploadUrl;
-    if (isPDF) {
-      // 🔥 PDFs use 'raw' upload type
-      uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`;
-    } else {
-      uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/upload`;
+    try {
+      // Determine resource type based on file type
+      const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+      const isVideo = file.type.startsWith('video/') || file.name.match(/\.(mp4|webm|mov|avi|mkv)$/i);
+      const isAudio = file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|aac|flac|m4a|ogg)$/i);
+      const isImage = file.type.startsWith('image/');
+      
+      let uploadUrl;
+      let resourceType = 'auto';
+      
+      if (isPDF) {
+        uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`;
+        resourceType = 'raw';
+      } else if (isVideo) {
+        uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`;
+        resourceType = 'video';
+      } else if (isAudio) {
+        uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`;
+        resourceType = 'video'; // Cloudinary handles audio as video/upload
+      } else {
+        uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/upload`;
+        resourceType = 'image';
+      }
+      
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+      formData.append("folder", "content");
+      
+      const res = await fetch(uploadUrl, { method: "POST", body: formData });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || "Upload failed");
+      }
+      
+      const data = await res.json();
+      console.log("✅ File uploaded:", data.secure_url);
+      
+      // 🔥 Set the file URL based on file type
+      setFileUrl(data.secure_url);
+      
+      // If it's audio, also set it as audio_url for the space
+      if (isAudio) {
+        setFileUrl(data.secure_url);
+      }
+      
+      setError("");
+    } catch (err) {
+      console.error("File upload error:", err);
+      setError("File upload failed: " + err.message);
     }
-    
-    const res = await fetch(uploadUrl, { method: "POST", body: formData });
-    
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error?.message || "Upload failed");
-    }
-    
-    const data = await res.json();
-    console.log("✅ File uploaded:", data.secure_url);
-    setFileUrl(data.secure_url);
-    setError("");
-  } catch (err) {
-    console.error("File upload error:", err);
-    setError("File upload failed: " + err.message);
-  }
-};
+  };
 
-  // Handle image upload
+  // 🔥 Handle image upload
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -497,7 +516,6 @@ const handleFileUpload = async (e) => {
     setError("");
     setLoading(true);
     
-    // 🔥 DEBUG: Check what's being saved
     console.log("📤 Saving content with file_url:", fileUrl);
     
     try {
@@ -509,9 +527,9 @@ const handleFileUpload = async (e) => {
           meta: meta.trim() || "New content",
           price: space.type === "book" ? price : null,
           blurb: space.type === "book" ? blurb : null,
-          video_url: space.type === "video" || space.type === "poetry" ? videoUrl || null : null,
-          audio_url: space.type === "audio" ? fileUrl || null : null,
-          file_url: fileUrl || null,
+          video_url: (space.type === "video" || space.type === "poetry") ? fileUrl : null,
+          audio_url: space.type === "audio" ? fileUrl : null,
+          file_url: space.type === "book" ? fileUrl : null,
           image_url: imageUrl || null,
         })
         .select();
@@ -548,7 +566,7 @@ const handleFileUpload = async (e) => {
     <div className="max-w-xl">
       <h2 className="font-fraunces text-2xl font-bold mb-1" style={{ color: C.white }}>Upload Content</h2>
       <p className="font-body text-[13px] mb-7" style={{ color: C.faint }}>
-        Add new content to your spaces. It will appear on the site immediately.
+        Add new content to your spaces. Supports audio, video, images, and PDFs.
       </p>
 
       {error && (
@@ -588,22 +606,20 @@ const handleFileUpload = async (e) => {
           </>
         )}
 
-        {(space.type === "video" || space.type === "poetry") && (
-          <div>
-            <label className="font-body text-[11px] tracking-[0.2em] uppercase block mb-2" style={{ color: C.faint }}>Video URL (YouTube or Cloudinary)</label>
-            <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=xxxxx" className="w-full bg-transparent outline-none font-body text-[13.5px] px-4 py-3.5 rounded-2xl" style={{ border: `1px solid ${C.border}`, color: C.white, background: C.surface }} />
-          </div>
-        )}
-
         <div>
           <label className="font-body text-[11px] tracking-[0.2em] uppercase block mb-2" style={{ color: C.faint }}>Thumbnail Image</label>
           <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full bg-transparent outline-none font-body text-[13.5px] px-4 py-3.5 rounded-2xl" style={{ border: `1px solid ${C.border}`, color: C.white, background: C.surface }} />
           {imageUrl && <p className="font-body text-[11px] mt-1" style={{ color: C.good }}>✅ Image uploaded</p>}
         </div>
 
-        {/* 🔥 FILE UPLOAD WITH GOOGLE DRIVE OPTION */}
+        {/* 🔥 FILE UPLOAD - SUPPORTS AUDIO, VIDEO, PDF */}
         <div>
-          <label className="font-body text-[11px] tracking-[0.2em] uppercase block mb-2" style={{ color: C.faint }}>Upload File / PDF</label>
+          <label className="font-body text-[11px] tracking-[0.2em] uppercase block mb-2" style={{ color: C.faint }}>
+            {space.type === "audio" ? "🎵 Upload Audio File" :
+             space.type === "video" ? "🎬 Upload Video File" :
+             space.type === "book" ? "📄 Upload PDF" :
+             "📁 Upload File"}
+          </label>
           
           <div className="flex gap-2 mb-3">
             <button
@@ -627,8 +643,21 @@ const handleFileUpload = async (e) => {
           {uploadMethod === "cloudinary" && (
             <label className="flex flex-col items-center justify-center gap-2 py-8 rounded-2xl cursor-pointer" style={{ border: `2px dashed ${C.border}`, background: C.fainter }}>
               <UploadCloud size={20} color={space.accent} />
-              <span className="font-body text-[12.5px]" style={{ color: C.dim }}>{fileName || `Choose a ${space.type === "audio" ? "audio" : space.type === "book" ? "PDF" : "video"} file`}</span>
-              <input type="file" className="hidden" onChange={handleFileUpload} />
+              <span className="font-body text-[12.5px]" style={{ color: C.dim }}>
+                {fileName || `Choose a ${space.type === "audio" ? "audio" : space.type === "book" ? "PDF" : "video"} file`}
+              </span>
+              <p className="font-body text-[10px]" style={{ color: C.faint }}>
+                {space.type === "audio" ? "MP3, WAV, AAC, FLAC, M4A" :
+                 space.type === "video" ? "MP4, WebM, MOV, AVI" :
+                 space.type === "book" ? "PDF" :
+                 "Any file type"}
+              </p>
+              <input type="file" className="hidden" onChange={handleFileUpload} accept={
+                space.type === "audio" ? "audio/*" :
+                space.type === "video" ? "video/*" :
+                space.type === "book" ? ".pdf" :
+                "*/*"
+              } />
             </label>
           )}
 
@@ -651,11 +680,11 @@ const handleFileUpload = async (e) => {
                   className="px-4 py-2 rounded-xl font-body text-[13px] font-semibold whitespace-nowrap"
                   style={{ background: `linear-gradient(135deg, ${C.violet}, ${C.blue})`, color: "white" }}
                 >
-                  Link PDF
+                  Link File
                 </button>
               </div>
               {fileUrl && uploadMethod === "googledrive" && (
-                <p className="font-body text-[11px] mt-2" style={{ color: C.good }}>✅ Google Drive PDF linked: {fileUrl.substring(0, 40)}...</p>
+                <p className="font-body text-[11px] mt-2" style={{ color: C.good }}>✅ Google Drive file linked</p>
               )}
             </div>
           )}
