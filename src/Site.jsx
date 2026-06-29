@@ -679,9 +679,8 @@ const AuthModal = ({ onClose, onAuth, defaultMode = "signup", pendingSpace = nul
     </motion.div>
   );
 };
-
 /* ---------------------------------------------------------------
-   ENGAGEMENT
+   ENGAGEMENT - SAVES TO SUPABASE
 --------------------------------------------------------------- */
 const Engagement = ({ contentId, user, accent }) => {
   const { isDark } = useTheme();
@@ -690,23 +689,148 @@ const Engagement = ({ contentId, user, accent }) => {
   const [likedByMe, setLikedByMe] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState("");
-  
+  const [loading, setLoading] = useState(true);
+
+  // 🔥 Fetch engagement from Supabase
   useEffect(() => {
-    const s = lsGet(`engage_${contentId}`); const m = lsGet(`liked_${contentId}`);
-    if (s) setData(JSON.parse(s)); if (m) setLikedByMe(JSON.parse(m));
-  }, [contentId]);
-  
-  const toggleLike = () => {
-    const n = !likedByMe; const nd = { ...data, likes: data.likes + (n ? 1 : -1) };
-    setLikedByMe(n); setData(nd); lsSet(`liked_${contentId}`, JSON.stringify(n)); lsSet(`engage_${contentId}`, JSON.stringify(nd));
+    const fetchEngagement = async () => {
+      setLoading(true);
+      try {
+        // Get likes count
+        const { count: likesCount, error: likesError } = await sb
+          .from("engagements")
+          .select("*", { count: 'exact', head: true })
+          .eq("content_id", contentId)
+          .eq("type", "like");
+        
+        if (likesError) throw likesError;
+        
+        // Get comments
+        const { data: comments, error: commentsError } = await sb
+          .from("engagements")
+          .select("user_name, comment, created_at")
+          .eq("content_id", contentId)
+          .eq("type", "comment")
+          .order("created_at", { ascending: false });
+        
+        if (commentsError) throw commentsError;
+        
+        // Check if user already liked
+        if (user) {
+          const { count: userLikeCount, error: userLikeError } = await sb
+            .from("engagements")
+            .select("*", { count: 'exact', head: true })
+            .eq("content_id", contentId)
+            .eq("user_id", user.id)
+            .eq("type", "like");
+          
+          if (!userLikeError && userLikeCount > 0) {
+            setLikedByMe(true);
+          }
+        }
+        
+        setData({
+          likes: likesCount || 0,
+          comments: comments || [],
+        });
+      } catch (err) {
+        console.error("Error fetching engagement:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchEngagement();
+  }, [contentId, user]);
+
+  // 🔥 Toggle like
+  const toggleLike = async () => {
+    if (!user) {
+      alert("Please sign in to like this content!");
+      return;
+    }
+    
+    try {
+      if (likedByMe) {
+        // Remove like
+        const { error } = await sb
+          .from("engagements")
+          .delete()
+          .eq("content_id", contentId)
+          .eq("user_id", user.id)
+          .eq("type", "like");
+        
+        if (error) throw error;
+        
+        setLikedByMe(false);
+        setData(prev => ({ ...prev, likes: prev.likes - 1 }));
+      } else {
+        // Add like
+        const { error } = await sb
+          .from("engagements")
+          .insert({
+            content_id: contentId,
+            user_id: user.id,
+            user_name: user.name || "Anonymous",
+            type: "like",
+          });
+        
+        if (error) throw error;
+        
+        setLikedByMe(true);
+        setData(prev => ({ ...prev, likes: prev.likes + 1 }));
+      }
+    } catch (err) {
+      console.error("Error toggling like:", err);
+      alert("Failed to update like. Please try again.");
+    }
   };
-  
-  const addComment = (e) => {
-    e.preventDefault(); if (!draft.trim()) return;
-    const nd = { ...data, comments: [...data.comments, { name: user?.name || "Guest", text: draft.trim() }] };
-    setData(nd); setDraft(""); lsSet(`engage_${contentId}`, JSON.stringify(nd));
+
+  // 🔥 Add comment
+  const addComment = async (e) => {
+    e.preventDefault();
+    if (!draft.trim()) return;
+    if (!user) {
+      alert("Please sign in to comment!");
+      return;
+    }
+    
+    try {
+      const { data: newComment, error } = await sb
+        .from("engagements")
+        .insert({
+          content_id: contentId,
+          user_id: user.id,
+          user_name: user.name || "Anonymous",
+          type: "comment",
+          comment: draft.trim(),
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setData(prev => ({
+        ...prev,
+        comments: [newComment, ...prev.comments],
+      }));
+      setDraft("");
+    } catch (err) {
+      console.error("Error adding comment:", err);
+      alert("Failed to add comment. Please try again.");
+    }
   };
-  
+
+  if (loading) {
+    return (
+      <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${colors.borderColor}` }}>
+        <div className="flex items-center gap-5">
+          <span className="font-body text-[12px]" style={{ color: colors.textMuted }}>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${colors.borderColor}` }}>
       <div className="flex items-center gap-5">
@@ -720,17 +844,30 @@ const Engagement = ({ contentId, user, accent }) => {
       </div>
       {showComments && (
         <div className="mt-3 space-y-2">
-          {data.comments.map((c, i) => <div key={i} className="font-body text-[12.5px]"><span style={{ color: accent }}>{c.name}</span> <span style={{ color: colors.textSecondary }}>{c.text}</span></div>)}
+          {data.comments.map((c, i) => (
+            <div key={i} className="font-body text-[12.5px]">
+              <span style={{ color: accent }}>{c.user_name}</span>
+              <span style={{ color: colors.textSecondary }}> {c.comment}</span>
+            </div>
+          ))}
           <form onSubmit={addComment} className="flex gap-2 mt-2">
-            <input value={draft} onChange={e => setDraft(e.target.value)} placeholder="Say something..." className="flex-1 bg-transparent outline-none font-body text-[13px] px-4 py-2.5 rounded-xl" style={{ border: `1px solid ${colors.borderColor}`, color: colors.textPrimary }} />
-            <button type="submit" style={{ color: accent }}><Send size={15} /></button>
+            <input 
+              value={draft} 
+              onChange={e => setDraft(e.target.value)} 
+              placeholder={user ? "Say something..." : "Sign in to comment"} 
+              disabled={!user}
+              className="flex-1 bg-transparent outline-none font-body text-[13px] px-4 py-2.5 rounded-xl" 
+              style={{ border: `1px solid ${colors.borderColor}`, color: colors.textPrimary }} 
+            />
+            <button type="submit" style={{ color: accent }} disabled={!user}>
+              <Send size={15} />
+            </button>
           </form>
         </div>
       )}
     </div>
   );
 };
-
 /* ---------------------------------------------------------------
    SPACE VIEW - FETCHES FROM SUPABASE (WITH GOOGLE PDF VIEWER)
 --------------------------------------------------------------- */
