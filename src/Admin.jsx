@@ -394,7 +394,7 @@ const Photos = () => {
   );
 };
 /* ---------------------------------------------------------------
-   UPLOAD CONTENT - WITH GOOGLE DRIVE SUPPORT
+   UPLOAD CONTENT - WITH GOOGLE DRIVE + CLOUDINARY UPLOAD FIXED
 --------------------------------------------------------------- */
 const UploadContent = ({ onUpload }) => {
   const [spaceId, setSpaceId] = useState(SPACES[0].id);
@@ -413,36 +413,32 @@ const UploadContent = ({ onUpload }) => {
   const [driveLink, setDriveLink] = useState("");
   const space = SPACES.find(s => s.id === spaceId);
 
-  // 🔥 Handle Google Drive upload
+  // 🔥 FIXED: Handle Google Drive upload
   const handleDriveUpload = () => {
     if (!driveLink.trim()) {
       setError("Please paste a Google Drive link");
       return;
     }
     
+    let directLink = driveLink.trim();
+    
     // Extract file ID from Google Drive link
     const match = driveLink.match(/\/d\/([^\/]+)/);
     if (match) {
       const fileId = match[1];
-      const directLink = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      setFileUrl(directLink);
-      setFileName("Google Drive PDF");
-      setError("");
-      alert("✅ Google Drive PDF linked successfully!");
-    } else {
-      // Check if it's already a direct link
-      if (driveLink.includes('drive.google.com')) {
-        setError("Could not extract file ID. Make sure you're using the correct share link.");
-      } else {
-        setFileUrl(driveLink);
-        setFileName("External PDF");
-        setError("");
-        alert("✅ PDF linked successfully!");
-      }
+      directLink = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    } else if (driveLink.includes('drive.google.com')) {
+      setError("Could not extract file ID. Make sure you're using the correct share link.");
+      return;
     }
+    
+    setFileUrl(directLink);
+    setFileName("Google Drive PDF");
+    setError("");
+    alert("✅ Google Drive PDF linked successfully!");
   };
 
-  // 🔥 Handle Cloudinary file upload
+  // 🔥 FIXED: Handle Cloudinary file upload
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -457,15 +453,21 @@ const UploadContent = ({ onUpload }) => {
       formData.append("file", file);
       formData.append("upload_preset", CLOUDINARY_PRESET);
       formData.append("folder", "content");
-      formData.append("resource_type", resourceType);
       
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${uploadType}/upload`,
-        { method: "POST", body: formData }
-      );
+      // 🔥 FIX: Don't append resource_type for raw uploads
+      const url = isPDF
+        ? `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`
+        : `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${uploadType}/upload`;
       
-      if (!res.ok) throw new Error("Upload failed");
+      const res = await fetch(url, { method: "POST", body: formData });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || "Upload failed");
+      }
+      
       const data = await res.json();
+      console.log("✅ File uploaded:", data.secure_url);
       setFileUrl(data.secure_url);
       setError("");
     } catch (err) {
@@ -474,7 +476,7 @@ const UploadContent = ({ onUpload }) => {
     }
   };
 
-  // 🔥 Handle image upload
+  // Handle image upload
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -493,6 +495,9 @@ const UploadContent = ({ onUpload }) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
+    // 🔥 DEBUG: Check what's being saved
+    console.log("📤 Saving content with file_url:", fileUrl);
     
     try {
       const { data, error } = await sb
@@ -517,6 +522,7 @@ const UploadContent = ({ onUpload }) => {
       }
       
       if (data) {
+        console.log("✅ Content saved:", data);
         setSuccess(true);
         setTitle("");
         setMeta("");
@@ -648,7 +654,7 @@ const UploadContent = ({ onUpload }) => {
                 </button>
               </div>
               {fileUrl && uploadMethod === "googledrive" && (
-                <p className="font-body text-[11px] mt-2" style={{ color: C.good }}>✅ Google Drive PDF linked</p>
+                <p className="font-body text-[11px] mt-2" style={{ color: C.good }}>✅ Google Drive PDF linked: {fileUrl.substring(0, 40)}...</p>
               )}
             </div>
           )}
